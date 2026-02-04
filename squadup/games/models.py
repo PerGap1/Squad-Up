@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 
 class Game(models.Model): 
     '''
-    active = models.BooleanField()
-    artwork = models.ImageField()   # Mudar o nome?
+    active = models.BooleanField()          # É feito assim mesmo?
+    artwork = models.ImageField()           # Mudar o nome?
     description = models.TextField()
     # developer = ?
     # genres = models.TextChoices()
@@ -14,7 +14,7 @@ class Game(models.Model):
 
     # Hidden fields
     # Alguma forma de setar o criador
-    creator = get_user_model()
+    creator = models.ManyToManyField(get_user_model())
     # editable = False ?
     # Pensar nos melhores nomes para esses dois campos
     created = models.DateTimeField(auto_now_add=True)
