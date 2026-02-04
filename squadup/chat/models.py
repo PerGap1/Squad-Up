@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 # Dá pra pensar em extender django.db.models pra acrescentar creator, modified e created em todos os models, como no bubble
 class Message(models.Model):
     '''
-    active = models.BooleanField()                      # É feito assim mesmo?
     content = models.TextField()
     edited = models.BooleanField()                      # É possível não utilizar esse campo, ou usar @property
     message_type = models.TextChoices()                 # Conversa, alerta, block, sair do grupo...
@@ -14,6 +13,8 @@ class Message(models.Model):
                                                         # Não consegui colocar Message dentro de ManyToOne, mas essa é a ideia
 
     # Hidden fields
+    active = models.BooleanField()                      # É feito assim mesmo?
+    creator = models.ManyToOneRel(get_user_model())
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     '''
