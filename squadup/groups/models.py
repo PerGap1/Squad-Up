@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from games.models import Game
+from core.models import DefaultFields
 
 
-class AbstractGroup(models.Model):
+class AbstractGroup(DefaultFields):
     '''
     # Pensando bem, não tenho certeza se o many to one funciona na direção que eu estou pensando...
     # será necessário checar a documentação
@@ -27,5 +28,5 @@ class AbstractGroup(models.Model):
     pass
 
 
-class Squad(AbstractGroup): pass
-class Event(AbstractGroup): pass
+class Squad(AbstractGroup, models.Model): pass
+class Event(AbstractGroup, models.Model): pass
