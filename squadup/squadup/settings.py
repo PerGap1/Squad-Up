@@ -79,18 +79,18 @@ WSGI_APPLICATION = 'squadup.wsgi.application'
 
 import os
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'squad_up',
-        'PASSWORD': f'{os.environ.get('MY_DEFAULT_PASSWORD')}',
-        'OPTIONS': {
-            'client_encoding': 'UTF-8',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'squad_up',
+    #     'PASSWORD': f'{os.environ.get('MY_DEFAULT_PASSWORD')}',
+    #     'OPTIONS': {
+    #         'client_encoding': 'UTF-8',
+    #     },
+    # }
 }
 
 

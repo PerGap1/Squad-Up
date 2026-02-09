@@ -24,9 +24,9 @@ class User(AbstractUser):
 
     # Campos que costumavam estar em player
     ban_request = models.BooleanField(default=False)    # Campos estão em ordem alfabética, talvez seja uma boa ideia mudar
-    blocked_players = models.ManyToManyField(User)      # <<<
+    # blocked_players = models.ManyToManyField(User)      # <<<
     discord = models.CharField(max_length=30)
-    friends = models.ManyToManyField(User)              # <<<
+    # friends = models.ManyToManyField(User)              # <<<
     game_preferences = models.ManyToManyField(Game)     # Pesquisar diferença entre rel e field
     # notifications = ?
     plan = models.CharField(max_length=2, choices=Plan, default=Plan.FREE)
@@ -36,6 +36,7 @@ class User(AbstractUser):
     first_time = models.BooleanField(default=True)      # AbstractUser já tem date joined, talvez dê pra dispensar esse campo
 
 
+'''
 class Staff(models.Model): 
     """
     Na verdade, tanto AbstractUser quanto as classes anteriores na cadeia de herança,
@@ -44,7 +45,7 @@ class Staff(models.Model):
     então talvez essa classe seja desnecessária.
     """
 
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     document = models.CharField(max_length=20)          # Não sei como fazer esse campo valer para todos os países
     # staff_type = models.TextField                     # Será necessário?
-      
+'''
