@@ -53,7 +53,6 @@ class Friendship(DefaultFieldsUserRelated):
     O mesmo é válido para as outras tabelas
     '''
 
-    
     class Meta:
         constraints = [
             models.UniqueConstraint(
