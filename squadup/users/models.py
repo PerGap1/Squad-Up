@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from games.models import Game
+from core.models import DefaultFields
 
 from django.utils.translation import gettext_lazy as lazy
 from django_countries.fields import CountryField
 
-class User(AbstractUser): 
+class User(DefaultFields, AbstractUser): 
     class Plan(models.TextChoices):
         FREE = 'FR', lazy('Free')
         PRO = 'PR', lazy('Pro')

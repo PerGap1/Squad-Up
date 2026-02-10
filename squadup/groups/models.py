@@ -5,6 +5,8 @@ from core.models import DefaultFields
 
 
 class AbstractGroup(DefaultFields):
+    class Meta:
+        abstract = True
     '''
     # Pensando bem, não tenho certeza se o many to one funciona na direção que eu estou pensando...
     # será necessário checar a documentação
@@ -28,5 +30,5 @@ class AbstractGroup(DefaultFields):
     pass
 
 
-class Squad(AbstractGroup, models.Model): pass
-class Event(AbstractGroup, models.Model): pass
+class Squad(AbstractGroup): pass
+class Event(AbstractGroup): pass

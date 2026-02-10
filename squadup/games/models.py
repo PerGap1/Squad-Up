@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from core.models import DefaultFields
 
 
-class Game(DefaultFields, models.Model): 
+class Game(DefaultFields): 
     '''
     active = models.BooleanField()          # É feito assim mesmo?
     artwork = models.ImageField()           # Mudar o nome?

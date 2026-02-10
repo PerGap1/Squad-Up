@@ -1,9 +1,12 @@
 from django.db import models
-from django.contrib.auth import get_user_model
+from squadup.settings import AUTH_USER_MODEL
 
 
-class DefaultFields:
+class DefaultFields(models.Model):
+    class Meta:
+        abstract = True
+
     active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    creator = models.ManyToManyField(get_user_model())
+    creator = models.ManyToManyField(AUTH_USER_MODEL)

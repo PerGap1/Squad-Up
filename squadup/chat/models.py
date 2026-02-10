@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from core.models import DefaultFields
 
 # Dá pra pensar em extender django.db.models pra acrescentar creator, modified e created em todos os models, como no bubble
-class Message(DefaultFields, models.Model):
+class Message(DefaultFields):
     '''
     content = models.TextField()
     edited = models.BooleanField()                      # É possível não utilizar esse campo, ou usar @property
