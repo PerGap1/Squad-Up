@@ -17,8 +17,7 @@ class User(DefaultFieldsUserRelated, AbstractUser):
         SUSPENDED = 'SP', lazy('Suspended')
         BANNED = 'BN', lazy('Banned')
 
-    # USERNAME_FIELD = email                            # Em teoria é assim que se coloca o email como o identificador...
-                                                        # Porém não estou conseguindo acessar os atributos de dentro da classe
+    USERNAME_FIELD = User.email         # ?
     
     country = CountryField()
     dark_mode = models.BooleanField(default=True)
@@ -29,21 +28,20 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     discord = models.CharField(max_length=30)
     plan = models.CharField(max_length=2, choices=Plan, default=Plan.FREE)
     status = models.CharField(max_length=2, choices=Status, default=Status.ACTIVE)
-    # notifications = ?
+    # notifications: https://github.com/django-notifications/django-notifications
     # schedule = ?
-    # first_time = models.BooleanField(default=True)    Esse campo não será necessário, só lembrar de direcionar users recém registrados para uma tela de engajamento
 
-    game_preferences = models.ManyToManyField(Game)     # Pesquisar diferença entre rel e field
+    game_preferences = models.ManyToManyField(Game)
 
     # Atributos em relacionamento n pra n recursivo
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
     # silenced = ?      # players, groups e events
 
+    # Lembrar de direcionar users recém registrados para uma tela de engajamento
+
 # Tabela intermediária de User em um relacionamento n pra n recursivo
 class Friendship(DefaultFieldsUserRelated):
-    user_1 = models.ForeignKey(User, related_name='friendship_user_1', on_delete=models.CASCADE)
-    user_2 = models.ForeignKey(User, related_name='friendship_user_2', on_delete=models.CASCADE)
     '''
     Quais campos (metadados) podem ser úteis nessa tabela?
     Lembrar que os campos default já estão sendo herdados
@@ -59,7 +57,9 @@ class Friendship(DefaultFieldsUserRelated):
                 fields=["user_1", "user_2"], name="unique_constraint_friendship"
             )
         ]
-    pass
+
+    user_1 = models.ForeignKey(User, related_name='friendship_user_1', on_delete=models.CASCADE)
+    user_2 = models.ForeignKey(User, related_name='friendship_user_2', on_delete=models.CASCADE)
 
 # Seguindo a ideia que eu pesquisei para a tabela de amizades, parece justo também fazer outras tabelas para os outros campos
 class Block(DefaultFieldsUserRelated):

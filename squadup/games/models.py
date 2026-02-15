@@ -4,13 +4,9 @@ from core.models import DefaultFields
 
 
 class Game(DefaultFields): 
-    '''
-    active = models.BooleanField()          # É feito assim mesmo?
     artwork = models.ImageField()           # Mudar o nome?
     description = models.TextField()
     # developer = ?
     # genres = models.TextChoices()
     name = models.CharField(max_length=50)
-    platforms = models.TextChoices()
-    '''
-    pass
+    platforms = models.TextChoices()    # ?
