@@ -19,7 +19,7 @@ class User(DefaultFieldsUserRelated, AbstractUser):
 
     email = models.EmailField(lazy("email address"), unique=True)
     
-    country = CountryField()
+    country = CountryField(blank=False)
     dark_mode = models.BooleanField(default=True)
     profile_picture = models.ImageField()
 
@@ -33,13 +33,12 @@ class User(DefaultFieldsUserRelated, AbstractUser):
 
     game_preferences = models.ManyToManyField(Game)
 
-    # Atributos em relacionamento n pra n recursivo
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
     # silenced = ?      # players, groups e events
     
     USERNAME_FIELD = 'email'        # Não gostei da forma que o usuário aparece...
-    REQUIRED_FIELDS = ['username', 'country']
+    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
 

@@ -31,11 +31,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'core.apps.CoreConfig',
     'users.apps.UsersConfig',
+    'schedule.apps.ScheduleConfig'
     'games.apps.GamesConfig',
     'chat.apps.ChatConfig',
     'groups.apps.GroupsConfig',
-    'core.apps.CoreConfig',
     'django_countries',
     'django.contrib.admin',
     'django.contrib.auth',
