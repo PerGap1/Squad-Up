@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from core.models import DefaultFields
 
+from squadup.settings import AUTH_USER_MODEL
+
 # Provavelmente desistirei do chat, porque existem alguns apps que podem substituir
 class Message(DefaultFields):
     '''
@@ -13,4 +15,5 @@ class Message(DefaultFields):
     replied_message = models.ManyToOneRel()             # Uma vez que a mensagem não será apagada, só inativada, pode ser feito desse jeito
                                                         # Não consegui colocar Message dentro de ManyToOne, mas essa é a ideia
     '''
-    pass
+    
+    creator = models.ManyToManyField(AUTH_USER_MODEL, related_name='chat_creator')

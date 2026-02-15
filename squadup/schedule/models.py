@@ -18,3 +18,5 @@ class Availability(DefaultFieldsUserRelated):
     day_of_week = models.TextField(max_length=2, choices=DayOfWeek, blank=False)
     start_time = models.TimeField()
     end_time = models.TimeField()
+
+    # Criar uma classe Schedule, em que jogador, evento ou squad pode ter um pra um?

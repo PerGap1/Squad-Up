@@ -33,7 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
-    'schedule.apps.ScheduleConfig'
+    'schedule.apps.ScheduleConfig',
     'games.apps.GamesConfig',
     'chat.apps.ChatConfig',
     'groups.apps.GroupsConfig',

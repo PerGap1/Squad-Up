@@ -1,5 +1,6 @@
 from django.db import models
 from squadup.settings import AUTH_USER_MODEL
+from abc import abstractmethod
 
 """
 Campos que estarão em todos os models, para facilitar com algumas informações que poderão ser usadas,
@@ -21,4 +22,12 @@ class DefaultFields(DefaultFieldsUserRelated):
     class Meta:
         abstract = True
 
-    creator = models.ManyToManyField(AUTH_USER_MODEL)
+    creator = models.ManyToManyField(AUTH_USER_MODEL, related_name='placeholder_creator')
+
+    """
+    Precisa ser sobrescrito, senão haverá colisão entre atributos related_name de diferentes models
+    """
+    @property
+    @abstractmethod
+    def creator(self):
+        return self.creator

@@ -1,4 +1,4 @@
-app_name = 'games'
+app_name = 'groups'
 
 urlpatterns = [
     

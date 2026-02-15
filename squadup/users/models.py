@@ -20,7 +20,7 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     email = models.EmailField(lazy("email address"), unique=True)
     
     country = CountryField(blank=False)
-    dark_mode = models.BooleanField(default=True)
+    dark_mode = models.BooleanField(default=True)       # Eventualmente dá para trocar ou adicionar algo como color: codigo_rgb
     profile_picture = models.ImageField()
 
     # Campos que costumavam estar em player
@@ -31,14 +31,14 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     # notifications: https://github.com/django-notifications/django-notifications
     # schedule = ?
 
-    game_preferences = models.ManyToManyField(Game)
+    # game_preferences = models.ManyToManyField(Game)
 
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
     # silenced = ?      # players, groups e events
     
     USERNAME_FIELD = 'email'        # Não gostei da forma que o usuário aparece...
-    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]
+    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # Também o email não está sendo pedido por padrão.....
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
 
