@@ -37,6 +37,9 @@ class AbstractGroup(DefaultFields):
     @abstractmethod
     def creator(self):
         return self.creator
+    
+    def __str__(self):
+        return self.name
 
     def create_tag(self): 
         valid_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -53,18 +56,16 @@ class AbstractGroup(DefaultFields):
 
 
 class Ban(DefaultFieldsUserRelated):
-    '''
-    class Meta:
+    '''class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["user_1", "user_2"], name="unique_constraint_friendship"
             )
         ]
-
+    
     # Acho que por ser AbstractGroup, pode dar erro
     group = models.ForeignKey(AbstractGroup, related_name='ban_group', on_delete=models.CASCADE)
-    user = models.ForeignKey(get_user_model(), related_name='ban_user', on_delete=models.CASCADE)
-    '''
+    user = models.ForeignKey(get_user_model(), related_name='ban_user', on_delete=models.CASCADE)'''
     pass
 
 

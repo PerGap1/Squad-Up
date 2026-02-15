@@ -41,6 +41,9 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # Também o email não está sendo pedido por padrão.....
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
+    
+    def __str__(self):
+        return self.username
 
 # Tabela intermediária de User em um relacionamento n pra n recursivo
 class Friendship(DefaultFieldsUserRelated):
