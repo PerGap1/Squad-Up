@@ -16,6 +16,7 @@ class DefaultFieldsUserRelated(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+
 class DefaultFields(DefaultFieldsUserRelated):
     class Meta:
         abstract = True

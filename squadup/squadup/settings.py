@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'games.apps.GamesConfig',
     'chat.apps.ChatConfig',
     'groups.apps.GroupsConfig',
+    'core.apps.CoreConfig',
     'django_countries',
     'django.contrib.admin',
     'django.contrib.auth',

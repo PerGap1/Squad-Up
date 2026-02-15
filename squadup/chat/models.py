@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from core.models import DefaultFields
 
-# Dá pra pensar em extender django.db.models pra acrescentar creator, modified e created em todos os models, como no bubble
+# Provavelmente desistirei do chat, porque existem alguns apps que podem substituir
 class Message(DefaultFields):
     '''
     content = models.TextField()

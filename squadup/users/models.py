@@ -17,7 +17,7 @@ class User(DefaultFieldsUserRelated, AbstractUser):
         SUSPENDED = 'SP', lazy('Suspended')
         BANNED = 'BN', lazy('Banned')
 
-    USERNAME_FIELD = User.email         # ?
+    email = models.EmailField(lazy("email address"), unique=True)
     
     country = CountryField()
     dark_mode = models.BooleanField(default=True)
@@ -37,6 +37,9 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
     # silenced = ?      # players, groups e events
+    
+    USERNAME_FIELD = 'email'        # Não gostei da forma que o usuário aparece...
+    REQUIRED_FIELDS = ['username', 'country']
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
 

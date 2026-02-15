@@ -6,10 +6,10 @@ from games.models import Game
 from core.models import DefaultFields, DefaultFieldsUserRelated
 
 
-class AbstractGroup(models.Model, DefaultFields):
+class AbstractGroup(DefaultFields):
     class Meta:
         abstract = True
-
+    '''
     class Privacy(models.TextChoices):
         PUBLIC = 'PB', lazy('Public')
         LINKED = 'LK', lazy('Linked')
@@ -27,9 +27,12 @@ class AbstractGroup(models.Model, DefaultFields):
     # schedule: fazer um app pra isso
 
     def create_tag(self): pass
+    '''
+    pass
 
 
-class Ban(models.Model, DefaultFieldsUserRelated):
+class Ban(DefaultFieldsUserRelated):
+    '''
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -40,10 +43,15 @@ class Ban(models.Model, DefaultFieldsUserRelated):
     # Acho que por ser AbstractGroup, pode dar erro
     group = models.ForeignKey(AbstractGroup, related_name='ban_group', on_delete=models.CASCADE)
     user = models.ForeignKey(get_user_model(), related_name='ban_user', on_delete=models.CASCADE)
+    '''
+    pass
 
 
 class Squad(AbstractGroup): pass        # Talvez permitir que um grupo tenha subgrupos, tipo discord
 
 
 class Event(AbstractGroup):
+    '''
     group = models.ForeignKey(Squad, blank=True, on_delete=models.CASCADE)  # Para que um grupo possa criar eventos de jogos
+    '''
+    pass
