@@ -12,11 +12,5 @@ class Message(DefaultFields):
     
     replied_message = models.ManyToOneRel()             # Uma vez que a mensagem não será apagada, só inativada, pode ser feito desse jeito
                                                         # Não consegui colocar Message dentro de ManyToOne, mas essa é a ideia
-
-    # Hidden fields
-    active = models.BooleanField()                      # É feito assim mesmo?
-    creator = models.ManyToOneRel(get_user_model())
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
     '''
     pass
