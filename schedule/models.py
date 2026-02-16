@@ -8,19 +8,34 @@ from django.contrib.auth import get_user_model
 from squadup.settings import AUTH_USER_MODEL
 
 
+class ScheduleManager(models.Manager):
+
+    def create(self, *args, **kwargs):
+        if not kwargs.get('holder'):
+            raise ValueError("Schedule's manager expects a holder to own the schedule")
+        
+        return super().create(*args, **kwargs)
+
+
 class Schedule(DefaultFields):
 
-    '''player = models.ForeignKey(AUTH_USER_MODEL, blank=True, null=True, related_name='schedule_player', on_delete=models.CASCADE)
-    squad = models.ForeignKey('groups.Squad', blank=True, null=True, related_name='schedule_squad', on_delete=models.CASCADE)
-    event = models.ForeignKey('groups.Event', blank=True, null=True, related_name='schedule_event', on_delete=models.CASCADE)
+    player = models.OneToOneField(AUTH_USER_MODEL, blank=True, null=True, related_name='schedule_player', on_delete=models.CASCADE)
+    squad = models.OneToOneField('groups.Squad', blank=True, null=True, related_name='schedule_squad', on_delete=models.CASCADE)
+    event = models.OneToOneField('groups.Event', blank=True, null=True, related_name='schedule_event', on_delete=models.CASCADE)
 
+    objects = ScheduleManager()
+
+    # Estou com a impressão de que User ter schedule e schedule ter holder não é uma boa ideia
     @property
     def holder(self):           # Não gostei do nome
-        return self.player or self.squad or self.event
+        result = self.player or self.squad or self.event
+        if not result:
+            raise ValueError("Schedule's holder has not been set")
+        return 
     
     @holder.setter
     def holder(self, obj):
-        error_msg = "obj parameter must be an object of User, Squad or Event class"
+        error_msg = f"obj parameter must be an object of User, Squad or Event class, {type(obj)} was passed"
 
         if not hasattr(obj, 'get_class'):
             raise ValueError(error_msg)
@@ -35,10 +50,10 @@ class Schedule(DefaultFields):
             self.event = obj
             self.player, self.squad = None, None
         else:
-            raise ValueError(error_msg)'''
+            raise ValueError(error_msg)
         
-    # def __str__(self):
-    #     return super().__str__(self)
+    def __str__(self):
+        return f"{self.holder}'s schedule"
 
 
 class Availability(DefaultFields):

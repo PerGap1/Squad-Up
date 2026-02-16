@@ -132,7 +132,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
-# Custom mofifications
+"""Custom mofifications"""
+
 AUTH_USER_MODEL = 'users.User'
 
 # MEDIA_ROOT = 

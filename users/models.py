@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager as OriginalUserManager
 from django.utils.translation import gettext_lazy as lazy
 
 from django_countries.fields import CountryField
@@ -8,13 +8,45 @@ from games.models import Game
 from core.models import DefaultFields
 from schedule.models import Schedule
 
-
-class UserManager(models.Manager):
+# Sendo bem sincero, acho que extender UserManager pode ser uma má ideia, mas parece estar funcionando normalmente
+class UserManager(OriginalUserManager):
     # Existem outras ideias interessantes para um object manager, para auxiliar em alguma coisa
-    def create(self, **kwargs):
-        user = super().create(**kwargs)
-        user.schedule = Schedule.objects.create()
+
+    def create_schedule(user):
+        if not user.schedule:
+            user.schedule = Schedule.objects.create(holder=user)
+
+    # Está ficando um pouquinho ridículo...
+    def create(self, *args, **kwargs):
+        user = super().create(*args, **kwargs)
+        UserManager.create_schedule(user)
         return user
+    
+    def acreate(self, *args, **kwargs):
+        user = super().acreate(*args, **kwargs)
+        UserManager.create_schedule(user)
+        return user
+    
+    def create_user(self, username, email = ..., password = ..., **extra_fields):
+        user = super().create_user(username, email, password, **extra_fields)
+        UserManager.create_schedule(user)
+        return user
+    
+    def acreate_user(self, username, email = ..., password = ..., **extra_fields):
+        user = super().acreate_user(username, email, password, **extra_fields)
+        UserManager.create_schedule(user)
+        return user
+    
+    def create_superuser(self, username, email, password, **extra_fields):
+        user = super().create_superuser(username, email, password, **extra_fields)
+        UserManager.create_schedule(user)
+        return user
+
+    def acreate_superuser(self, username, email, password, **extra_fields):
+        user = super().acreate_superuser(username, email, password, **extra_fields)
+        UserManager.create_schedule(user)
+        return user
+    # Quando um superuser é criado a partir da linha de comando, ele vem sem schedule
     
 
 class User(DefaultFields, AbstractUser): 
