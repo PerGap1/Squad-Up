@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as lazy
 
 from abc import abstractmethod
@@ -70,7 +69,7 @@ class Ban(DefaultFieldsUserRelated):
 
 
 class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo discord
-    host = models.ForeignKey(get_user_model(), related_name='squad_host', on_delete=models.CASCADE)
+    host = models.ForeignKey(AUTH_USER_MODEL, related_name='squad_host', on_delete=models.CASCADE)
     creator = models.ManyToManyField(AUTH_USER_MODEL, related_name='squad_creator')
 
 
@@ -78,5 +77,5 @@ class Event(AbstractGroup):
     '''
     group = models.ForeignKey(Squad, blank=True, on_delete=models.CASCADE)  # Para que um grupo possa criar eventos de jogos
     '''
-    host = models.ForeignKey(get_user_model(), related_name='event_host', on_delete=models.CASCADE)
+    host = models.ForeignKey(AUTH_USER_MODEL, related_name='event_host', on_delete=models.CASCADE)
     creator = models.ManyToManyField(AUTH_USER_MODEL, related_name='event_creator')

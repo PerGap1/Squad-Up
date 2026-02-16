@@ -80,6 +80,7 @@ class Block(DefaultFieldsUserRelated):
         ]
 
 # A lógica parece certa...
+# Talvez seja mais correto mudar essa tabela para outro campo, pelas boas práticas
 class Silenced(DefaultFieldsUserRelated):
     # Talvez mudar esse nome...
     agent = models.ForeignKey(User, related_name='silenced_agent', on_delete=models.CASCADE)

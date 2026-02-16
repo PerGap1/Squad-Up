@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'games.apps.GamesConfig',
     'chat.apps.ChatConfig',
     'groups.apps.GroupsConfig',
-    'schedule.apps.ScheduleConfig',
     'django_countries',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -121,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
