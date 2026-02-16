@@ -6,6 +6,7 @@ from core.models import DefaultFieldsUserRelated, DefaultFields
 from django.utils.translation import gettext_lazy as lazy
 from django_countries.fields import CountryField
 
+
 class User(DefaultFieldsUserRelated, AbstractUser): 
 
     class Plan(models.TextChoices):
@@ -23,21 +24,20 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     dark_mode = models.BooleanField(default=True)       # Eventualmente dá para trocar ou adicionar algo como color: codigo_rgb
     profile_picture = models.ImageField(default='default_pfp.jpg', upload_to='profile_pics')
 
-    # Campos que costumavam estar em player
+    """Campos que costumavam estar em player"""
     ban_request = models.BooleanField(default=False)
     discord = models.CharField(max_length=30)
     plan = models.CharField(max_length=4, choices=Plan, default=Plan.FREE)
     status = models.CharField(max_length=3, choices=Status, default=Status.ACTIVE)
     # notifications: https://github.com/django-notifications/django-notifications
-    # schedule = ?
 
-    # game_preferences = models.ManyToManyField(Game)
+    game_preferences = models.ManyToManyField(Game)
 
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
     # silenced = ?      # players, groups e events
     
-    USERNAME_FIELD = 'email'        # Não gostei da forma que o usuário aparece...
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # Também o email não está sendo pedido por padrão.....
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
@@ -78,5 +78,5 @@ class Block(DefaultFieldsUserRelated):
             )
         ]
 
-# Falta Silenced, porém provavelmente haverá três classes silenced, uma pra cada tipo de objeto.
-# Ou duas, considerando que Events e Squads herdam de uma classe abstrata
+
+# class Silenced
