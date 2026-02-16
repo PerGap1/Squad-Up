@@ -13,7 +13,7 @@ class Game(DefaultFields):
     released = models.DateField()
     # platforms = models.TextChoices()    # Acho que dá para cancelar, nem a Steam mostra muito sobre plataformas
 
-    creator = models.ManyToManyField(AUTH_USER_MODEL, related_name='game_creator')
+    creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='game_creator', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

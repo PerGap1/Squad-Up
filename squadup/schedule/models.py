@@ -37,8 +37,8 @@ class Schedule(DefaultFields):
         else:
             raise ValueError(error_msg)'''
         
-    def __str__(self):
-        return super().__str__(self)
+    # def __str__(self):
+    #     return super().__str__(self)
 
 
 class Availability(DefaultFields):
@@ -60,15 +60,3 @@ class Availability(DefaultFields):
 
     def __str__(self):
         return f'{self.day_of_week}, {self.start_time} to {self.end_time}'
-    
-
-# @receiver(post_save, sender=get_user_model())
-# @receiver(post_save, sender=Squad)
-# @receiver(post_save, sender=Event)
-# def update_schedule(sender, instance, created, **kwargs): 
-#     """
-#     Preferi deixar como responsabilidade do próprio schedule, ser criado quando um novo objeto é criado
-#     """
-#     if created or not hasattr(instance, 'schedule'):      # Tirar a segunda condição depois
-#         Schedule.objects.create(holder=instance)
-#     instance.schedule.save()

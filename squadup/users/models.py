@@ -9,6 +9,14 @@ from core.models import DefaultFields
 from schedule.models import Schedule
 
 
+class UserManager(models.Manager):
+    # Existem outras ideias interessantes para um object manager, para auxiliar em alguma coisa
+    def create(self, **kwargs):
+        user = super().create(**kwargs)
+        user.schedule = Schedule.objects.create()
+        return user
+    
+
 class User(DefaultFields, AbstractUser): 
 
     class Plan(models.TextChoices):
@@ -38,7 +46,9 @@ class User(DefaultFields, AbstractUser):
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
 
-    schedule = models.OneToOneField('schedule.Schedule', related_name='user_schedule', on_delete=models.CASCADE)
+    schedule = models.OneToOneField('schedule.Schedule', null=True, related_name='user_schedule', on_delete=models.CASCADE)
+
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # O email não está sendo pedido por padrão.....
@@ -51,12 +61,7 @@ class User(DefaultFields, AbstractUser):
     @staticmethod
     def get_class():
         return 'User'
-    
-    @classmethod
-    def create(cls, *args, **kwargs):
-        schedule = Schedule.objects.create()
-        print(f"------------------------------------------------------------------------------------------------------- {schedule}")
-        return cls(schedule=schedule, *args, **kwargs)
+
 
 # Tabela intermediária de User em um relacionamento n pra n recursivo
 class Friendship(DefaultFields):

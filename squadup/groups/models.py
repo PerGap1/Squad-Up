@@ -7,7 +7,16 @@ from random import randint
 from games.models import Game
 from core.models import DefaultFields
 from squadup.settings import AUTH_USER_MODEL
+from schedule.models import Schedule
 
+
+class GroupManager(models.Manager):
+
+    def create(self, **kwargs):
+        group = super().create(**kwargs)
+        group.schedule = Schedule.objects.create()
+        return group
+    
 
 class AbstractGroup(DefaultFields):
     class Meta:
@@ -21,10 +30,12 @@ class AbstractGroup(DefaultFields):
     name = models.CharField(max_length=50)
     privacy = models.CharField(max_length=2, choices=Privacy, default=Privacy.PUBLIC)
     tag = models.CharField(max_length=7, unique=True, editable=False)     # Ainda não consigo acessar coisas dentro da classe...
-    members = models.ManyToManyField(AUTH_USER_MODEL, through='Members')
     image = models.ImageField()
 
+    members = models.ManyToManyField(AUTH_USER_MODEL, through='Members')
     games = models.ManyToManyField(Game)
+
+    objects = GroupManager()
     
     # chat...? Talvez importar um app chat, talvez criar nós mesmos e fazer um relacionamento 1 pra 1
 
@@ -50,18 +61,12 @@ class AbstractGroup(DefaultFields):
         for _ in range(7):
             tag += valid_characters[randint(0, len(valid_characters))]
         return tag
-    
-    @classmethod
-    def create(cls, name, privacy, members, image, games, host):
-        book = cls(name, privacy, members, image, games, host)
-        book.tag = cls.create_tag()
-        return book
 
 
 class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo discord
 
-    host = models.ForeignKey(AUTH_USER_MODEL, related_name='squad_host', on_delete=models.CASCADE)
-    creator = models.ForeignKey(AUTH_USER_MODEL, related_name='squad_creator', on_delete=models.CASCADE)
+    host = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='squad_host', on_delete=models.CASCADE)
+    creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='squad_creator', on_delete=models.CASCADE)
     schedule = models.OneToOneField('schedule.Schedule', related_name='squad_schedule', on_delete=models.CASCADE)
 
     @staticmethod
@@ -73,8 +78,8 @@ class Event(AbstractGroup):
     
     group = models.ForeignKey(Squad, blank=True, null=True, on_delete=models.CASCADE)  # Para que um grupo possa criar eventos de jogos
     
-    host = models.ForeignKey(AUTH_USER_MODEL, related_name='event_host', on_delete=models.CASCADE)
-    creator = models.ForeignKey(AUTH_USER_MODEL, related_name='event_creator', on_delete=models.CASCADE)
+    host = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='event_host', on_delete=models.CASCADE)
+    creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='event_creator', on_delete=models.CASCADE)
     schedule = models.OneToOneField('schedule.Schedule', related_name='event_schedule', on_delete=models.CASCADE)
 
     @staticmethod
