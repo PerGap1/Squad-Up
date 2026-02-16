@@ -1,3 +1,5 @@
+# Eu pretendia não permitir migrações no github, porém para poupar muito trabalho, voltei atrás na decisão
+# **/migrations/
+# **/db.sqlite3
+
 **/__pycache__/
-**/migrations/
-**/db.sqlite3

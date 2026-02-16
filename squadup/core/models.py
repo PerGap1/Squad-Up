@@ -5,11 +5,8 @@ from abc import abstractmethod
 """
 Campos que estarão em todos os models, para facilitar com algumas informações que poderão ser usadas,
 especialmente no desenvolvimento.
-
-Está separado em campos padrão e campos padrão para coisas relacionadas a User, porque User ter um User creator gera diversos
-problemas quanto a importações circulares. Isso acontece também com as tabelas intermediárias entre dois Users.
 """
-class DefaultFieldsUserRelated(models.Model):
+class DefaultFields(models.Model):
     class Meta:
         abstract = True
 
@@ -17,17 +14,13 @@ class DefaultFieldsUserRelated(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    @staticmethod
+    def get_class(): ...
 
-class DefaultFields(DefaultFieldsUserRelated):
-    class Meta:
-        abstract = True
 
-    creator = models.ManyToManyField(AUTH_USER_MODEL, related_name='placeholder_creator')
+# class ModelWithSchedule(models.Model):
+#     class Meta:
+#         abstract = True
 
-    """
-    Precisa ser sobrescrito, senão haverá colisão entre atributos related_name de diferentes models
-    """
-    @property
-    @abstractmethod
-    def creator(self):
-        return self.creator
+#     @classmethod
+#     def create(cls, **kwargs):

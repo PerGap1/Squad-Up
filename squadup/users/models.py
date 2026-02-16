@@ -5,12 +5,11 @@ from django.utils.translation import gettext_lazy as lazy
 from django_countries.fields import CountryField
 
 from games.models import Game
-from core.models import DefaultFields, DefaultFieldsUserRelated
-from schedule.models import ModelWithSchedule
-from groups.models import Squad, Event
+from core.models import DefaultFields
+from schedule.models import Schedule
 
 
-class User(DefaultFieldsUserRelated, AbstractUser, ModelWithSchedule): 
+class User(DefaultFields, AbstractUser): 
 
     class Plan(models.TextChoices):
         FREE = 'FREE', lazy('Free')
@@ -21,7 +20,7 @@ class User(DefaultFieldsUserRelated, AbstractUser, ModelWithSchedule):
         SUSPENDED = 'SUS', lazy('Suspended')
         BANNED = 'BAN', lazy('Banned')
 
-    email = models.EmailField(lazy("email address"), unique=True)
+    email = models.EmailField(lazy("email address"), unique=True, blank=False, null=False)
     
     country = CountryField(blank=False)
     dark_mode = models.BooleanField(default=True)       # Eventualmente dá para trocar ou adicionar algo como color: codigo_rgb
@@ -34,10 +33,12 @@ class User(DefaultFieldsUserRelated, AbstractUser, ModelWithSchedule):
     status = models.CharField(max_length=3, choices=Status, default=Status.ACTIVE)
     # notifications: https://github.com/django-notifications/django-notifications
 
-    # game_preferences = models.ManyToManyField(Game)
+    game_preferences = models.ManyToManyField(Game)
 
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
+
+    schedule = models.OneToOneField('schedule.Schedule', related_name='user_schedule', on_delete=models.CASCADE)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # O email não está sendo pedido por padrão.....
@@ -46,9 +47,19 @@ class User(DefaultFieldsUserRelated, AbstractUser, ModelWithSchedule):
     
     def __str__(self):
         return self.username or self.email
+    
+    @staticmethod
+    def get_class():
+        return 'User'
+    
+    @classmethod
+    def create(cls, *args, **kwargs):
+        schedule = Schedule.objects.create()
+        print(f"------------------------------------------------------------------------------------------------------- {schedule}")
+        return cls(schedule=schedule, *args, **kwargs)
 
 # Tabela intermediária de User em um relacionamento n pra n recursivo
-class Friendship(DefaultFieldsUserRelated):
+class Friendship(DefaultFields):
     '''
     Quais campos (metadados) podem ser úteis nessa tabela?
     Lembrar que os campos default já estão sendo herdados
@@ -58,37 +69,38 @@ class Friendship(DefaultFieldsUserRelated):
     O mesmo é válido para as outras tabelas
     '''
 
-    class Meta:
+    '''class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["user_1", "user_2"], name="unique_constraint_friendship"
             )
-        ]
+        ]'''
 
     user_1 = models.ForeignKey(User, related_name='friendship_user_1', on_delete=models.CASCADE)
     user_2 = models.ForeignKey(User, related_name='friendship_user_2', on_delete=models.CASCADE)
 
 # Seguindo a ideia que eu pesquisei para a tabela de amizades, parece justo também fazer outras tabelas para os outros campos
-class Block(DefaultFieldsUserRelated):
-    blocking = models.ForeignKey(User, related_name='block_blocking', on_delete=models.CASCADE)
-    blocked = models.ForeignKey(User, related_name='block_blocked', on_delete=models.CASCADE)
+class Block(DefaultFields):
 
-    class Meta:
+    '''class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["blocking", "blocked"], name="unique_constraint_block"
             )
-        ]
+        ]'''
+    
+    blocking = models.ForeignKey(User, related_name='block_blocking', on_delete=models.CASCADE)
+    blocked = models.ForeignKey(User, related_name='block_blocked', on_delete=models.CASCADE)
 
 # A lógica parece certa...
 # Talvez seja mais correto mudar essa tabela para outro campo, pelas boas práticas
-class Silenced(DefaultFieldsUserRelated):
+class Silenced(DefaultFields):
     # Talvez mudar esse nome...
     agent = models.ForeignKey(User, related_name='silenced_agent', on_delete=models.CASCADE)
 
     player = models.ForeignKey(User, related_name='silenced_player', null=True, blank=True, on_delete=models.CASCADE)
-    squad = models.ForeignKey(Squad, related_name='silenced_squad', null=True, blank=True, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, related_name='silenced_event', null=True, blank=True, on_delete=models.CASCADE)
+    squad = models.ForeignKey('groups.Squad', related_name='silenced_squad', null=True, blank=True, on_delete=models.CASCADE)
+    event = models.ForeignKey('groups.Event', related_name='silenced_event', null=True, blank=True, on_delete=models.CASCADE)
 
     @property
     def holder(self):
@@ -96,14 +108,19 @@ class Silenced(DefaultFieldsUserRelated):
     
     @holder.setter
     def holder(self, obj):
-        if type(obj) == User:
+        error_msg = "obj parameter must be an object of User, Squad or Event class"
+
+        if not hasattr(obj, 'get_class'):
+            raise ValueError(error_msg)
+        
+        if obj.get_class() == 'User':
             self.player = obj
             self.squad, self.event = None, None
-        elif type(obj) == Event:
-            self.event = obj
-            self.squad, self.player = None, None
-        elif type(obj) == Squad:
+        elif obj.get_class() == 'Squad':
             self.squad = obj
-            self.player, self.event = None, None
+            self.event, self.player = None, None
+        elif obj.get_class() == 'Event':
+            self.event = obj
+            self.player, self.squad = None, None
         else:
-            raise ValueError("obj parameter must be an object of User, Squad or Event class")
+            raise ValueError(error_msg)

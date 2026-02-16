@@ -1,18 +1,18 @@
 from django.db import models
-from core.models import DefaultFieldsUserRelated
+from core.models import DefaultFields
 from django.utils.translation import gettext_lazy as lazy
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 
-from users.models import User
-from groups.models import Squad, Event
+from squadup.settings import AUTH_USER_MODEL
 
 
-class Schedule(DefaultFieldsUserRelated):
+class Schedule(DefaultFields):
 
-    player = models.ForeignKey(User, blank=True, null=True, related_name='schedule_player', on_delete=models.CASCADE)
-    squad = models.ForeignKey(Squad, blank=True, null=True, related_name='schedule_squad', on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, blank=True, null=True, related_name='schedule_event', on_delete=models.CASCADE)
+    '''player = models.ForeignKey(AUTH_USER_MODEL, blank=True, null=True, related_name='schedule_player', on_delete=models.CASCADE)
+    squad = models.ForeignKey('groups.Squad', blank=True, null=True, related_name='schedule_squad', on_delete=models.CASCADE)
+    event = models.ForeignKey('groups.Event', blank=True, null=True, related_name='schedule_event', on_delete=models.CASCADE)
 
     @property
     def holder(self):           # Não gostei do nome
@@ -20,20 +20,28 @@ class Schedule(DefaultFieldsUserRelated):
     
     @holder.setter
     def holder(self, obj):
-        if type(obj) == User:
+        error_msg = "obj parameter must be an object of User, Squad or Event class"
+
+        if not hasattr(obj, 'get_class'):
+            raise ValueError(error_msg)
+        
+        if obj.get_class() == 'User':
             self.player = obj
             self.squad, self.event = None, None
-        elif type(obj) == Squad:
+        elif obj.get_class() == 'Squad':
             self.squad = obj
-            self.player, self.event = None, None
-        elif type(obj) == Event:
+            self.event, self.player = None, None
+        elif obj.get_class() == 'Event':
             self.event = obj
-            self.squad, self.player = None, None
+            self.player, self.squad = None, None
         else:
-            raise ValueError("obj parameter must be an object of User, Squad or Event class")
+            raise ValueError(error_msg)'''
+        
+    def __str__(self):
+        return super().__str__(self)
 
 
-class Availability(DefaultFieldsUserRelated):
+class Availability(DefaultFields):
 
     class DayOfWeek(models.IntegerChoices):
         SUNDAY = 0, lazy('Sunday')
@@ -44,7 +52,7 @@ class Availability(DefaultFieldsUserRelated):
         FRIDAY = 5, lazy('Friday')
         SATURDAY = 6, lazy('Saturday')
 
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='availability_schedule')
+    schedule = models.OneToOneField(Schedule, on_delete=models.CASCADE, related_name='availability_schedule')
 
     day_of_week = models.IntegerField(choices=DayOfWeek)
     start_time = models.TimeField()
@@ -64,10 +72,3 @@ class Availability(DefaultFieldsUserRelated):
 #     if created or not hasattr(instance, 'schedule'):      # Tirar a segunda condição depois
 #         Schedule.objects.create(holder=instance)
 #     instance.schedule.save()
-
-
-class ModelWithSchedule(models.Model):
-    class Meta:
-        abstract = True
-
-    schedule = models.ForeignKey(Schedule, related_name='object_schedule', on_delete=models.CASCADE) 
