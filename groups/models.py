@@ -10,12 +10,39 @@ from squadup.settings import AUTH_USER_MODEL
 from schedule.models import Schedule
 
 
-class GroupManager(models.Manager):
+# Unificar o que der em um superior, e chamar o criador de tag
+class SquadManager(models.Manager):
 
-    def create(self, **kwargs):
-        group = super().create(**kwargs)
-        group.schedule = Schedule.objects.create()
-        return group
+    def create_schedule(squad):
+        if not squad.schedule:
+            squad.schedule = Schedule.objects.create(holder=squad)
+
+    def create(self, *args, **kwargs):
+        squad = super().create(*args, **kwargs)
+        SquadManager.create_schedule(squad)
+        return squad
+    
+    def acreate(self, *args, **kwargs):
+        squad = super().acreate(*args, **kwargs)
+        SquadManager.create_schedule(squad)
+        return squad
+    
+
+class EventManager(models.Manager):
+
+    def create_schedule(event):
+        if not event.schedule:
+            event.schedule = Schedule.objects.create(holder=event)
+
+    def create(self, *args, **kwargs):
+        event = super().create(*args, **kwargs)
+        EventManager.create_schedule(event)
+        return event
+    
+    def acreate(self, *args, **kwargs):
+        event = super().acreate(*args, **kwargs)
+        EventManager.create_schedule(event)
+        return event
     
 
 class AbstractGroup(DefaultFields):
@@ -34,24 +61,9 @@ class AbstractGroup(DefaultFields):
 
     members = models.ManyToManyField(AUTH_USER_MODEL, through='Members')
     games = models.ManyToManyField(Game)
-
-    objects = GroupManager()
     
     # chat...? Talvez importar um app chat, talvez criar nós mesmos e fazer um relacionamento 1 pra 1
 
-    """
-    Precisa ser sobrescrito, senão haverá colisão entre atributos related_name de Squads e Events
-    """
-    @property
-    @abstractmethod
-    def creator(self):
-        return self.creator
-    
-    @property
-    @abstractmethod
-    def schedule(self):
-        return self.schedule
-    
     def __str__(self):
         return self.name
 
@@ -67,7 +79,9 @@ class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo
 
     host = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='squad_host', on_delete=models.CASCADE)
     creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='squad_creator', on_delete=models.CASCADE)
-    schedule = models.OneToOneField('schedule.Schedule', related_name='squad_schedule', on_delete=models.CASCADE)
+    schedule = models.OneToOneField('schedule.Schedule', null=True, blank=True, related_name='squad_schedule', on_delete=models.CASCADE)
+
+    objects = SquadManager()
 
     @staticmethod
     def get_class():
@@ -80,7 +94,9 @@ class Event(AbstractGroup):
     
     host = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='event_host', on_delete=models.CASCADE)
     creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='event_creator', on_delete=models.CASCADE)
-    schedule = models.OneToOneField('schedule.Schedule', related_name='event_schedule', on_delete=models.CASCADE)
+    schedule = models.OneToOneField('schedule.Schedule', null=True, blank=True, related_name='event_schedule', on_delete=models.CASCADE)
+
+    objects = EventManager()
 
     @staticmethod
     def get_class():

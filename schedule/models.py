@@ -1,9 +1,6 @@
 from django.db import models
 from core.models import DefaultFields
 from django.utils.translation import gettext_lazy as lazy
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.contrib.auth import get_user_model
 
 from squadup.settings import AUTH_USER_MODEL
 
