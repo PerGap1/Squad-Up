@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'schedule.apps.ScheduleConfig',
     'games.apps.GamesConfig',
-    'chat.apps.ChatConfig',
     'groups.apps.GroupsConfig',
     'django_countries',
     'django.contrib.admin',

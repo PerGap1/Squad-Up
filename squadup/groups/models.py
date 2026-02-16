@@ -6,10 +6,11 @@ from random import randint
 
 from games.models import Game
 from core.models import DefaultFields, DefaultFieldsUserRelated
+from schedule.models import ModelWithSchedule
 from squadup.settings import AUTH_USER_MODEL
 
 
-class AbstractGroup(DefaultFields):
+class AbstractGroup(DefaultFields, ModelWithSchedule):
     class Meta:
         abstract = True
     

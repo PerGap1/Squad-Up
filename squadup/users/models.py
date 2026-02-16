@@ -5,11 +5,12 @@ from django.utils.translation import gettext_lazy as lazy
 from django_countries.fields import CountryField
 
 from games.models import Game
-from core.models import DefaultFieldsUserRelated, DefaultFields
+from core.models import DefaultFields, DefaultFieldsUserRelated
+from schedule.models import ModelWithSchedule
 from groups.models import Squad, Event
 
 
-class User(DefaultFieldsUserRelated, AbstractUser): 
+class User(DefaultFieldsUserRelated, AbstractUser, ModelWithSchedule): 
 
     class Plan(models.TextChoices):
         FREE = 'FREE', lazy('Free')
@@ -33,7 +34,7 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     status = models.CharField(max_length=3, choices=Status, default=Status.ACTIVE)
     # notifications: https://github.com/django-notifications/django-notifications
 
-    game_preferences = models.ManyToManyField(Game)
+    # game_preferences = models.ManyToManyField(Game)
 
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
@@ -44,7 +45,7 @@ class User(DefaultFieldsUserRelated, AbstractUser):
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
     
     def __str__(self):
-        return self.username
+        return self.username or self.email
 
 # Tabela intermediária de User em um relacionamento n pra n recursivo
 class Friendship(DefaultFieldsUserRelated):
