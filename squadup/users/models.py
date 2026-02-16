@@ -9,25 +9,25 @@ from django_countries.fields import CountryField
 class User(DefaultFieldsUserRelated, AbstractUser): 
 
     class Plan(models.TextChoices):
-        FREE = 'FR', lazy('Free')
-        PRO = 'PR', lazy('Pro')
+        FREE = 'FREE', lazy('Free')
+        PRO = 'PRO', lazy('Pro')
 
     class Status(models.TextChoices):
-        ACTIVE = 'AT', lazy('Active')
-        SUSPENDED = 'SP', lazy('Suspended')
-        BANNED = 'BN', lazy('Banned')
+        ACTIVE = 'ACT', lazy('Active')
+        SUSPENDED = 'SUS', lazy('Suspended')
+        BANNED = 'BAN', lazy('Banned')
 
     email = models.EmailField(lazy("email address"), unique=True)
     
     country = CountryField(blank=False)
     dark_mode = models.BooleanField(default=True)       # Eventualmente dá para trocar ou adicionar algo como color: codigo_rgb
-    profile_picture = models.ImageField()
+    profile_picture = models.ImageField(default='default_pfp.jpg', upload_to='profile_pics')
 
     # Campos que costumavam estar em player
     ban_request = models.BooleanField(default=False)
     discord = models.CharField(max_length=30)
-    plan = models.CharField(max_length=2, choices=Plan, default=Plan.FREE)
-    status = models.CharField(max_length=2, choices=Status, default=Status.ACTIVE)
+    plan = models.CharField(max_length=4, choices=Plan, default=Plan.FREE)
+    status = models.CharField(max_length=3, choices=Status, default=Status.ACTIVE)
     # notifications: https://github.com/django-notifications/django-notifications
     # schedule = ?
 

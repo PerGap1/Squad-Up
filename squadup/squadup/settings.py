@@ -134,4 +134,7 @@ STATIC_URL = 'static/'
 
 
 # Custom mofifications
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = 'users.User'
+
+# MEDIA_ROOT = 
+MEDIA_URL = 'media/'
