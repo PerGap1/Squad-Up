@@ -1,10 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext_lazy as lazy
+
+from django_countries.fields import CountryField
+
 from games.models import Game
 from core.models import DefaultFieldsUserRelated, DefaultFields
-
-from django.utils.translation import gettext_lazy as lazy
-from django_countries.fields import CountryField
+from groups.models import Squad, Event
 
 
 class User(DefaultFieldsUserRelated, AbstractUser): 
@@ -35,10 +37,9 @@ class User(DefaultFieldsUserRelated, AbstractUser):
 
     blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
-    # silenced = ?      # players, groups e events
-    
+
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # Também o email não está sendo pedido por padrão.....
+    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # O email não está sendo pedido por padrão.....
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
     
@@ -78,5 +79,29 @@ class Block(DefaultFieldsUserRelated):
             )
         ]
 
+# A lógica parece certa...
+class Silenced(DefaultFieldsUserRelated):
+    # Talvez mudar esse nome...
+    agent = models.ForeignKey(User, related_name='silenced_agent', on_delete=models.CASCADE)
 
-# class Silenced
+    player = models.ForeignKey(User, related_name='silenced_player', null=True, blank=True, on_delete=models.CASCADE)
+    squad = models.ForeignKey(Squad, related_name='silenced_squad', null=True, blank=True, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, related_name='silenced_event', null=True, blank=True, on_delete=models.CASCADE)
+
+    @property
+    def holder(self):
+        return self.player or self.squad or self.event
+    
+    @holder.setter
+    def holder(self, obj):
+        if type(obj) == User:
+            self.player = obj
+            self.squad, self.event = None, None
+        elif type(obj) == Event:
+            self.event = obj
+            self.squad, self.player = None, None
+        elif type(obj) == Squad:
+            self.squad = obj
+            self.player, self.event = None, None
+        else:
+            raise ValueError("obj parameter must be an object of User, Squad or Event class")
