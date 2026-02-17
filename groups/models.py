@@ -133,6 +133,9 @@ class AbstractGroup(DefaultFields):
     def __str__(self):
         return self.name
     
+    def __len__(self):
+        return len(self.members.all())
+    
     """Abstract methods"""
     @abstractmethod
     def create(self, *args, **kwargs): ...
@@ -156,7 +159,7 @@ class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo
     def create_event(self, *args, **kwargs):
         Event.create(group=self, *args, **kwargs)
 
-    def get_events(self, *args, **kwargs):
+    def get_events(self):
         return self.event_set.all()
 
 
