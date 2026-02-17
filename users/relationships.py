@@ -13,15 +13,16 @@ class Block(DefaultFields):
     blocked = models.ForeignKey(User, related_name='block_blocked', on_delete=models.CASCADE)
     
 
-class SilencedUser(DefaultFields):
-    agent = models.ForeignKey(User, related_name='silenced_user_agent', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='silenced_user', on_delete=models.CASCADE)
-    
-class SilencedSquad(DefaultFields):
-    agent = models.ForeignKey(User, related_name='silenced_squad_agent', on_delete=models.CASCADE)
-    squad = models.ForeignKey('groups.Squad', related_name='silenced_squad', on_delete=models.CASCADE)
+class MutedUser(DefaultFields):
+    agent = models.ForeignKey(User, related_name='muted_user_agent', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='muted_user', on_delete=models.CASCADE)
     
 
-class SilencedEvent(DefaultFields):
-    agent = models.ForeignKey(User, related_name='silenced_event_agent', on_delete=models.CASCADE)
-    event = models.ForeignKey('groups.Event', related_name='silenced_event', on_delete=models.CASCADE)
+class MutedSquad(DefaultFields):
+    agent = models.ForeignKey(User, related_name='muted_squad_agent', on_delete=models.CASCADE)
+    squad = models.ForeignKey('groups.Squad', related_name='muted_squad', on_delete=models.CASCADE)
+    
+
+class MutedEvent(DefaultFields):
+    agent = models.ForeignKey(User, related_name='muted_event_agent', on_delete=models.CASCADE)
+    event = models.ForeignKey('groups.Event', related_name='muted_event', on_delete=models.CASCADE)
