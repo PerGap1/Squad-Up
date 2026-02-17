@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, UserManager as OriginalUser
 from django.utils.translation import gettext_lazy as lazy
 
 from django_countries.fields import CountryField
+from abc import abstractmethod
 
 from games.models import Game
 from core.models import DefaultFields
@@ -80,10 +81,15 @@ class User(DefaultFields, AbstractUser):
 
     schedule = models.OneToOneField('schedule.Schedule', null=True, related_name='user_schedule', on_delete=models.CASCADE)
 
+    # Não gostei desse modelo, talvez tenha outro jeito
+    silenced_players = models.ManyToManyField('self', through='SilencedPlayer', related_name='user_silenced_players', symmetrical=False)
+    silenced_squads = models.ManyToManyField('groups.Squad', through='SilencedSquad', related_name='user_silenced_squads', symmetrical=False)
+    silenced_events = models.ManyToManyField('groups.Event', through='SilencedEvent', related_name='user_silenced_events', symmetrical=False)
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]  # O email não está sendo pedido por padrão.....
+    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
     
@@ -134,39 +140,28 @@ class Block(DefaultFields):
 
     def __str__(self):
         return f'{self.user_1} blocked {self.user_2}'
-
-# A lógica parece certa...
-# Talvez seja mais correto mudar essa tabela para outro campo, pelas boas práticas
-class Silenced(DefaultFields):
-    # Talvez mudar esse nome...
-    agent = models.ForeignKey(User, related_name='silenced_agent', on_delete=models.CASCADE)
-
-    player = models.ForeignKey(User, related_name='silenced_player', null=True, blank=True, on_delete=models.CASCADE)
-    squad = models.ForeignKey('groups.Squad', related_name='silenced_squad', null=True, blank=True, on_delete=models.CASCADE)
-    event = models.ForeignKey('groups.Event', related_name='silenced_event', null=True, blank=True, on_delete=models.CASCADE)
-
-    @property
-    def holder(self):
-        return self.player or self.squad or self.event
     
-    @holder.setter
-    def holder(self, obj):
-        error_msg = "obj parameter must be an object of User, Squad or Event class"
 
-        if not hasattr(obj, 'get_class'):
-            raise ValueError(error_msg)
-        
-        if obj.get_class() == 'User':
-            self.player = obj
-            self.squad, self.event = None, None
-        elif obj.get_class() == 'Squad':
-            self.squad = obj
-            self.event, self.player = None, None
-        elif obj.get_class() == 'Event':
-            self.event = obj
-            self.player, self.squad = None, None
-        else:
-            raise ValueError(error_msg)
-        
+class SilencedPlayer(DefaultFields):
+
+    agent = models.ForeignKey(User, related_name='silenced_player_agent', on_delete=models.CASCADE)
+    player = models.ForeignKey(User, related_name='silenced_player', on_delete=models.CASCADE)
+
     def __str__(self):
-        return f'{self.user_1} silenced {self.holder.get_class()} {self.holder}'
+        return f'{self.agent} silenced Player {self.player}'
+    
+class SilencedSquad(DefaultFields):
+
+    agent = models.ForeignKey(User, related_name='silenced_squad_agent', on_delete=models.CASCADE)
+    squad = models.ForeignKey('groups.Squad', related_name='silenced_squad', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.agent} silenced Event {self.squad}'
+    
+class SilencedEvent(DefaultFields):
+    
+    agent = models.ForeignKey(User, related_name='silenced_event_agent', on_delete=models.CASCADE)
+    event = models.ForeignKey('groups.Event', related_name='silenced_event', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.agent} silenced Player {self.event}'
