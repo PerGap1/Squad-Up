@@ -14,13 +14,8 @@ class DefaultFields(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
-    @staticmethod
-    def get_class(): ...
+    @abstractmethod
+    def create(**kwargs): pass
 
-
-# class ModelWithSchedule(models.Model):
-#     class Meta:
-#         abstract = True
-
-#     @classmethod
-#     def create(cls, **kwargs):
+    @abstractmethod
+    def delete(): pass

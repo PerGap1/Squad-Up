@@ -5,8 +5,8 @@ from django.utils.translation import gettext_lazy as lazy
 
 class Schedule(DefaultFields):
 
-    def create(self, *args, **kwargs): 
-        return self.objects.create(*args, **kwargs)
+    def create(self, **kwargs): 
+        return self.objects.create(**kwargs)
     
     def delete(self):
         if not self.active:

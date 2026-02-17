@@ -29,7 +29,7 @@ class AbstractGroup(DefaultFields):
     name = models.CharField(max_length=50, null=False, blank=False)
     privacy = models.CharField(max_length=2, choices=Privacy, default=Privacy.PUBLIC, blank=False)
     tag = models.CharField(max_length=7, unique=True, editable=False, null=False, blank=False)
-    image = models.ImageField()
+    image = models.ImageField(default='default_pfp.jpg', upload_to='profile_pics')
 
     games = models.ManyToManyField(Game)
 
@@ -120,14 +120,14 @@ class AbstractGroup(DefaultFields):
         self.banned_users.add(user)
 
     def _add_game(self, game): 
-        if game in self.games:
+        if game in self.games.all():
             raise ValueError(AbstractGroup.ErrorMessages.ERROR_ADDING % (game.name, 'games'))
         self.games.add(game)
 
     def _remove_game(self, game):
         if not game in self.games.all():
             raise ValueError(AbstractGroup.ErrorMessages.ERROR_REMOVING % (game.name, 'games'))
-        self.members.remove(game)
+        self.games.remove(game)
 
     """Dunder methods"""
     def __str__(self):
