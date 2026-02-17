@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as lazy
 
-from abc import abstractmethod
 from random import randint
 
 from games.models import Game
@@ -9,41 +8,36 @@ from core.models import DefaultFields
 from squadup.settings import AUTH_USER_MODEL
 from schedule.models import Schedule
 
+# Chamar o criador de tag
+class GroupManager(models.Manager):
 
-# Unificar o que der em um superior, e chamar o criador de tag
-class SquadManager(models.Manager):
+    @staticmethod
+    def tag_creator():      # É possível cair com uma tag obscena ou algo do tipo
+        # Talvez dê para pensar em uma forma melhor, sem recursão
+        valid_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        tag = ''
+        for _ in range(7):
+            tag += valid_characters[randint(0, len(valid_characters) - 1)]
 
-    def create_schedule(squad):
-        if not squad.schedule:
-            squad.schedule = Schedule.objects.create(holder=squad)
-
-    def create(self, *args, **kwargs):
-        squad = super().create(*args, **kwargs)
-        SquadManager.create_schedule(squad)
-        return squad
-    
-    def acreate(self, *args, **kwargs):
-        squad = super().acreate(*args, **kwargs)
-        SquadManager.create_schedule(squad)
-        return squad
-    
-
-class EventManager(models.Manager):
-
-    def create_schedule(event):
-        if not event.schedule:
-            event.schedule = Schedule.objects.create(holder=event)
+        if Squad.objects.filter(tag=tag) or Event.objects.filter(tag=tag):
+            return GroupManager.tag_creator()
+        return tag
 
     def create(self, *args, **kwargs):
-        event = super().create(*args, **kwargs)
-        EventManager.create_schedule(event)
-        return event
+        group = super().create(tag=GroupManager.tag_creator(), *args, **kwargs)
+        GroupManager._create_schedule(group)
+        return group
     
     def acreate(self, *args, **kwargs):
-        event = super().acreate(*args, **kwargs)
-        EventManager.create_schedule(event)
-        return event
+        group = super().acreate(tag=GroupManager.tag_creator(), *args, **kwargs)
+        GroupManager._create_schedule(group)
+        return group
     
+    @staticmethod
+    def _create_schedule(group):
+        if not group.schedule:
+            group.schedule = Schedule.objects.create(holder=group)
+
 
 class AbstractGroup(DefaultFields):
     class Meta:
@@ -54,34 +48,28 @@ class AbstractGroup(DefaultFields):
         LINKED = 'LK', lazy('Linked')
         PRIVATE = 'PR', lazy('Private')
 
-    name = models.CharField(max_length=50)
-    privacy = models.CharField(max_length=2, choices=Privacy, default=Privacy.PUBLIC)
-    tag = models.CharField(max_length=7, unique=True, editable=False)     # Ainda não consigo acessar coisas dentro da classe...
+    name = models.CharField(max_length=50, null=False, blank=False)     # Unique?
+    privacy = models.CharField(max_length=2, choices=Privacy, default=Privacy.PUBLIC, blank=False)
+    tag = models.CharField(max_length=7, unique=True, editable=False, null=False, blank=False)
     image = models.ImageField()
 
     members = models.ManyToManyField(AUTH_USER_MODEL, through='Members')
     games = models.ManyToManyField(Game)
+
+    objects = GroupManager()
     
     # chat...? Talvez importar um app chat, talvez criar nós mesmos e fazer um relacionamento 1 pra 1
 
     def __str__(self):
         return self.name
 
-    def create_tag(self): 
-        valid_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        tag = ''
-        for _ in range(7):
-            tag += valid_characters[randint(0, len(valid_characters))]
-        return tag
-
 
 class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo discord
 
-    host = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='squad_host', on_delete=models.CASCADE)
-    creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='squad_creator', on_delete=models.CASCADE)
+    # Talvez trocar o valor de null dos dois próximos para False
+    host = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, related_name='squad_host', on_delete=models.CASCADE)
+    creator = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, related_name='squad_creator', on_delete=models.CASCADE)
     schedule = models.OneToOneField('schedule.Schedule', null=True, blank=True, related_name='squad_schedule', on_delete=models.CASCADE)
-
-    objects = SquadManager()
 
     @staticmethod
     def get_class():
@@ -92,17 +80,16 @@ class Event(AbstractGroup):
     
     group = models.ForeignKey(Squad, blank=True, null=True, on_delete=models.CASCADE)  # Para que um grupo possa criar eventos de jogos
     
-    host = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='event_host', on_delete=models.CASCADE)
-    creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='event_creator', on_delete=models.CASCADE)
+    # Talvez trocar o valor de null dos dois próximos para False
+    host = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, related_name='event_host', on_delete=models.CASCADE)
+    creator = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, related_name='event_creator', on_delete=models.CASCADE)
     schedule = models.OneToOneField('schedule.Schedule', null=True, blank=True, related_name='event_schedule', on_delete=models.CASCADE)
-
-    objects = EventManager()
 
     @staticmethod
     def get_class():
         return 'Event'
 
-
+# Talvez juntar a propriedade de group das duas próximas tabelas em uma só
 class Members(DefaultFields):
 
     '''class Meta:

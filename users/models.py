@@ -75,7 +75,7 @@ class User(DefaultFields, AbstractUser):
 
     game_preferences = models.ManyToManyField(Game)
 
-    blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)
+    blocked_players = models.ManyToManyField('self', through='Block', symmetrical=False)    # Nome longo...
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
 
     schedule = models.OneToOneField('schedule.Schedule', null=True, related_name='user_schedule', on_delete=models.CASCADE)
@@ -116,6 +116,9 @@ class Friendship(DefaultFields):
     user_1 = models.ForeignKey(User, related_name='friendship_user_1', on_delete=models.CASCADE)
     user_2 = models.ForeignKey(User, related_name='friendship_user_2', on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f'Friendship between {self.user_1} and {self.user_2}'
+
 # Seguindo a ideia que eu pesquisei para a tabela de amizades, parece justo também fazer outras tabelas para os outros campos
 class Block(DefaultFields):
 
@@ -128,6 +131,9 @@ class Block(DefaultFields):
     
     blocking = models.ForeignKey(User, related_name='block_blocking', on_delete=models.CASCADE)
     blocked = models.ForeignKey(User, related_name='block_blocked', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.user_1} blocked {self.user_2}'
 
 # A lógica parece certa...
 # Talvez seja mais correto mudar essa tabela para outro campo, pelas boas práticas
@@ -161,3 +167,6 @@ class Silenced(DefaultFields):
             self.player, self.squad = None, None
         else:
             raise ValueError(error_msg)
+        
+    def __str__(self):
+        return f'{self.user_1} silenced {self.holder.get_class()} {self.holder}'
