@@ -95,10 +95,6 @@ class User(DefaultFields, AbstractUser):
     
     def __str__(self):
         return self.username or self.email
-    
-    @staticmethod
-    def get_class():
-        return 'User'
 
 
 # Tabela intermediária de User em um relacionamento n pra n recursivo

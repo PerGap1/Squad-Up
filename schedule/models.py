@@ -16,41 +16,10 @@ class ScheduleManager(models.Manager):
 
 class Schedule(DefaultFields):
 
-    player = models.OneToOneField(AUTH_USER_MODEL, blank=True, null=True, related_name='schedule_player', on_delete=models.CASCADE)
-    squad = models.OneToOneField('groups.Squad', blank=True, null=True, related_name='schedule_squad', on_delete=models.CASCADE)
-    event = models.OneToOneField('groups.Event', blank=True, null=True, related_name='schedule_event', on_delete=models.CASCADE)
-
     objects = ScheduleManager()
-
-    # Estou com a impressão de que User ter schedule e schedule ter holder não é uma boa ideia
-    @property
-    def holder(self):           # Não gostei do nome
-        result = self.player or self.squad or self.event
-        if not result:
-            raise ValueError("Schedule's holder has not been set")
-        return 
-    
-    @holder.setter
-    def holder(self, obj):
-        error_msg = f"obj parameter must be an object of User, Squad or Event class, {type(obj)} was passed"
-
-        if not hasattr(obj, 'get_class'):
-            raise ValueError(error_msg)
         
-        if obj.get_class() == 'User':
-            self.player = obj
-            self.squad, self.event = None, None
-        elif obj.get_class() == 'Squad':
-            self.squad = obj
-            self.event, self.player = None, None
-        elif obj.get_class() == 'Event':
-            self.event = obj
-            self.player, self.squad = None, None
-        else:
-            raise ValueError(error_msg)
-        
-    def __str__(self):
-        return f"{self.holder}'s schedule"
+    def __str__(self): pass
+        # return f"{self.holder}'s schedule"
 
 
 class Availability(DefaultFields):
