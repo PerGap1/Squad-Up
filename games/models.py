@@ -15,5 +15,23 @@ class Game(DefaultFields):
 
     creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='game_creator', on_delete=models.CASCADE)
 
+    @staticmethod
+    def create(**kwargs):
+        return Game.objects.create(**kwargs)
+    
+    def delete(self):
+        if not self.active:
+            raise ValueError(f"Cannot delete game {self.name}: already deleted")
+        self.active = False
+
+    def get_users(self):
+        return self.user_set.all()
+    
+    def get_squads(self):
+        return self.squad_set.all()
+    
+    def get_events(self):
+        return self.event_set.all()
+
     def __str__(self):
         return self.name

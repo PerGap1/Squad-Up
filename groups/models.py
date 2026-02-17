@@ -147,8 +147,9 @@ class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo
     members = models.ManyToManyField(AUTH_USER_MODEL, through='SquadMember', related_name='squad_members')
     banned_users = models.ManyToManyField(AUTH_USER_MODEL, through='SquadBan', related_name='squad_banned_users')
 
-    def create(self, *args, **kwargs):
-        schedule = Schedule.objects.create()                # Possivelmente trocar aqui
+    @staticmethod
+    def create(*args, **kwargs):
+        schedule = Schedule.create()
         squad = Squad.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, *args, **kwargs)
         return squad
     
@@ -170,7 +171,8 @@ class Event(AbstractGroup):
     members = models.ManyToManyField(AUTH_USER_MODEL, through='EventMember', related_name='event_members')
     banned_users = models.ManyToManyField(AUTH_USER_MODEL, through='EventBan', related_name='event_banned_users')
 
-    def create(self, *args, **kwargs):
-        schedule = Schedule.objects.create()                # Possivelmente trocar aqui
+    @staticmethod
+    def create(*args, **kwargs):
+        schedule = Schedule.create()
         event = Event.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, *args, **kwargs)
         return event

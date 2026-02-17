@@ -2,24 +2,28 @@ from django.db import models
 from core.models import DefaultFields
 from django.utils.translation import gettext_lazy as lazy
 
-from squadup.settings import AUTH_USER_MODEL
-
-
-class ScheduleManager(models.Manager):
-
-    def create(self, *args, **kwargs):
-        if not kwargs.get('holder'):
-            raise ValueError("Schedule's manager expects a holder to own the schedule")
-        
-        return super().create(*args, **kwargs)
-
 
 class Schedule(DefaultFields):
 
-    objects = ScheduleManager()
+    def create(self, *args, **kwargs): 
+        return self.objects.create(*args, **kwargs)
+    
+    def delete(self):
+        if not self.active:
+            raise ValueError(f"Coudn't delete {self}: already deleted")
+        self.active = False
+
+    def get_holder(self):
+        return self.user_set.first() or self.squad_set.first() or self.event_set.first()
+    
+    def get_availabilities(self):
+        return self.availability_set.all()
+    
+    def new_availability(self, **kwargs): 
+        return Availability.create(schedule=self, **kwargs)
         
-    def __str__(self): pass
-        # return f"{self.holder}'s schedule"
+    def __str__(self):
+        return f"{self.get_holder()}'s schedule"
 
 
 class Availability(DefaultFields):
@@ -38,6 +42,15 @@ class Availability(DefaultFields):
     day_of_week = models.IntegerField(choices=DayOfWeek)
     start_time = models.TimeField()
     end_time = models.TimeField()
+
+    @classmethod
+    def create(cls, **kwargs):
+        return cls.objects.create(**kwargs)
+    
+    def delete(self):
+        if not self.active:
+            raise ValueError("Coudn't delete an availability: already deleted")
+        self.active = False
 
     def __str__(self):
         return f'{self.day_of_week}, {self.start_time} to {self.end_time}'
