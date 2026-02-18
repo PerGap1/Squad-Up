@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'games.apps.GamesConfig',
     'groups.apps.GroupsConfig',
     'django_countries',
+    'crispy_forms',
+    'crispy_bootstrap5',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -138,3 +140,7 @@ AUTH_USER_MODEL = 'users.User'
 
 # MEDIA_ROOT = 
 MEDIA_URL = 'media/'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
