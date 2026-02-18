@@ -106,7 +106,7 @@ class User(DefaultFields, AbstractUser):
         else:
             raise TypeError(f"Object of User or Game class expected, got {obj_type} instead")
     
-    def add_many(self, objects): 
+    def add_many(self, *objects): 
         for object in objects:
             self.add(object)
 
@@ -117,7 +117,7 @@ class User(DefaultFields, AbstractUser):
         else:
             raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
     
-    def remove_many(self, objects): 
+    def remove_many(self, *objects): 
         for object in objects:
             self.remove(object)
 
@@ -132,7 +132,7 @@ class User(DefaultFields, AbstractUser):
             self._remove_friend(user)
         self.blocked_users.add(user)
 
-    def block_many(self, users):
+    def block_many(self, *users):
         for user in users: 
             self.block(user)
 
@@ -144,7 +144,7 @@ class User(DefaultFields, AbstractUser):
         
         self.blocked_users.remove(user)
 
-    def unblock_many(self, users):
+    def unblock_many(self, *users):
         for user in users: 
             self.unblock(user)
 
@@ -161,7 +161,7 @@ class User(DefaultFields, AbstractUser):
         else:
             raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
         
-    def mute_many(self, objects):
+    def mute_many(self, *objects):
         for object in objects:
             self.mute(object)
     
@@ -177,7 +177,7 @@ class User(DefaultFields, AbstractUser):
         else:
             raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
 
-    def unmute_many(self, objects):
+    def unmute_many(self, *objects):
         for object in objects:
             self.unmute(object)
 

@@ -5,6 +5,13 @@ from django.utils.translation import gettext_lazy as lazy
 
 class Schedule(DefaultFields):
 
+    @property
+    def holder(self):
+        if hasattr(self, 'user_schedule'): return self.user_schedule
+        elif hasattr(self, 'squad_schedule'): return self.squad_schedule
+        elif hasattr(self, 'event_schedule'): return self.event_schedule
+        else: raise RuntimeError("This Schedule object has no holder")
+
     @staticmethod
     def create(**kwargs): 
         return Schedule.objects.create(**kwargs)
@@ -13,9 +20,6 @@ class Schedule(DefaultFields):
         if not self.active:
             raise ValueError(f"Coudn't delete {self}: already deleted")
         self.active = False
-
-    def get_holder(self):
-        return self.user_set.first() or self.squad_set.first() or self.event_set.first()
     
     def get_availabilities(self):
         return self.availability_set.all()
@@ -24,7 +28,7 @@ class Schedule(DefaultFields):
         return Availability.create(schedule=self, **kwargs)
         
     def __str__(self):
-        return f"{self.get_holder()}'s schedule"
+        return f"{self.holder}'s schedule"
 
 
 class Availability(DefaultFields):

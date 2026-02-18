@@ -96,7 +96,7 @@ class AbstractGroup(DefaultFields):
         else:
             raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
         
-    def add_many(self, objects):
+    def add_many(self, *objects):
         for object in objects:
             self.add(object)
 
@@ -110,14 +110,14 @@ class AbstractGroup(DefaultFields):
         else:
             raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
 
-    def remove_many(self, objects):
+    def remove_many(self, *objects):
         for object in objects:
             self.remove(object)
 
     def ban(self, user): 
         self._ban(user)
 
-    def ban_many(self, users):
+    def ban_many(self, *users):
         for user in users:
             self._ban(user)   
         
