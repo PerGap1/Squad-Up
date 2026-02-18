@@ -53,7 +53,7 @@ class User(DefaultFields, AbstractUser):
     """Guarantees that all required fields will be informed, and that a schedule will be created if it doesn't exist"""
     def save(self, **kwargs):
         not_given = []
-        for field in (['email'] + self.REQUIRED_FIELDS):
+        for field in (['email', 'password'] + self.REQUIRED_FIELDS):
             if not hasattr(self, field) or not getattr(self, field):
                 not_given.append(field)
                 
@@ -122,10 +122,12 @@ class User(DefaultFields, AbstractUser):
     """Methods to block users"""
     def block(self, *args):
         for user in args:
-            if user in self.blocked_users.all():
-                raise ValueError(f"Coudn't block user {user}: already blocked")
             if not type(user) is User:
                 raise TypeError(f"Object of User type expected, got {type(user)} instead")
+            if user in self.blocked_users.all():
+                raise ValueError(f"Coudn't block user {user}: already blocked")
+            if user is self:
+                raise ValueError(f"Coudn't block user {user}: that's you!")
             
             if user in self.friends.all():
                 self._remove_friend(user)
@@ -146,11 +148,13 @@ class User(DefaultFields, AbstractUser):
             obj_type = type(obj)
 
             if obj_type is User:
+                if obj is self:
+                    raise ValueError(f"Coudn't block user {obj}: that's you!")
                 self.muted_users.add(obj)
             elif obj_type is Squad:
                 self.muted_squads.add(obj)
             elif obj_type is Event:
-                self.muted_squads.add(obj)
+                self.muted_events.add(obj)
             else:
                 raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
             
@@ -163,7 +167,7 @@ class User(DefaultFields, AbstractUser):
             elif obj_type is Squad:
                 self.muted_squads.remove(obj)
             elif obj_type is Event:
-                self.muted_squads.remove(obj)
+                self.muted_events.remove(obj)
             else:
                 raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
 
@@ -181,6 +185,8 @@ class User(DefaultFields, AbstractUser):
     def _add_friend(self, user):
         if user in self.friends.all():
             raise ValueError(f"Coudn't add user {user}: already friends")
+        if user is self:
+            raise ValueError(f"Coudn't add user {user}: that's you!")
         self.friends.add(user)
 
     def _remove_friend(self, user):
