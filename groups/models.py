@@ -8,6 +8,7 @@ from games.models import Game
 from core.models import DefaultFields
 from squadup.settings import AUTH_USER_MODEL
 from schedule.models import Schedule
+from django.contrib.auth import get_user_model
 
 
 class AbstractGroup(DefaultFields):
@@ -20,11 +21,12 @@ class AbstractGroup(DefaultFields):
         PRIVATE = 'PR', lazy('Private')
 
     class ErrorMessages:
-        ERROR_ADDING = "Coudn't add %s to group %s: already in there"
-        ERROR_REMOVING = "Coudn't remove %s from group's %s: not in there"
-        ERROR_PROMOTING = "Coudn't promote %s to host: already the host"
-        ERROR_BANNING = "Cannot ban user %s: already banned"
-        ERROR_DELETING = "Coudn't delete group %s: already deleted"
+        ERROR_ADDING      = "Coudn't add %s to group %s: already in there"
+        ERROR_REMOVING    = "Coudn't remove %s from group's %s: not in there"
+        ERROR_PROMOTING   = "Coudn't promote %s to host: already the host"
+        ERROR_BANNING     = "Cannot ban user %s: already banned"
+        ERROR_DELETING    = "Coudn't delete group %s: already deleted"
+        SINGLE_TYPE_ERROR = "Object of %s type expected, got %s instead"
 
     name = models.CharField(max_length=50, null=False, blank=False)
     privacy = models.CharField(max_length=2, choices=Privacy, default=Privacy.PUBLIC, blank=False)
@@ -42,8 +44,7 @@ class AbstractGroup(DefaultFields):
     # chat...? Talvez importar um app chat, talvez criar nós mesmos e fazer um relacionamento 1 pra 1
     
     @staticmethod
-    def tag_creator():      # É possível cair com uma tag obscena ou algo do tipo
-        # Talvez dê para pensar em uma forma melhor, sem recursão
+    def tag_creator():
         valid_characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         tag = ''
         for _ in range(7):
@@ -64,55 +65,60 @@ class AbstractGroup(DefaultFields):
             raise ValueError(AbstractGroup.ErrorMessages.ERROR_PROMOTING % (user.username))
         self.host = user
     
-    """Related to members"""
-    def add_user(self, user):
-        AbstractGroup._add_user(user)
+    """Related to members and games"""
+    def add(self, object):
+        obj_type = type(object)
 
-    def add_many_users(self, users):
+        if obj_type is get_user_model():
+            AbstractGroup._add_user(object)
+        elif obj_type is Game:
+            AbstractGroup._add_game(object)
+        else:
+            raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
+        
+    def add_many(self, objects):
+        for object in objects:
+            AbstractGroup.add(object)
+
+    def remove(self, object):
+        obj_type = type(object)
+
+        if obj_type is get_user_model():
+            AbstractGroup._remove_user(object)
+        elif obj_type is Game:
+            AbstractGroup._remove_game(object)
+        else:
+            raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
+
+    def remove_many(self, objects):
+        for object in objects:
+            AbstractGroup.remove(object)
+
+    def ban(self, user): 
+        AbstractGroup._ban(user)
+
+    def ban_many(self, users):
         for user in users:
-            AbstractGroup._add_user(user)
-
-    def remove_user(self, user): 
-        AbstractGroup._remove_user(user)
-
-    def remove_many_users(self, users):
-        for user in users:
-            AbstractGroup._remove_user(user)
-
-    def ban_user(self, user): 
-        AbstractGroup._ban_user(user)
-
-    def ban_many_users(self, users):
-        for user in users:
-            AbstractGroup._ban_user(user)   
-
-    """Related to games"""
-    def add_game(self, game): 
-        AbstractGroup._add_game(game)
-
-    def add_many_games(self, games):
-        for game in games:
-            AbstractGroup._add_game(game)
-
-    def remove_game(self, game): 
-        AbstractGroup._remove_game(game)
-
-    def remove_many_games(self, games):
-        for game in games:
-            AbstractGroup._remove_game(game)
+            AbstractGroup._ban(user)   
         
     """Private functions"""
     def _add_user(self, user):
         if user in self.members:
             raise ValueError(AbstractGroup.ErrorMessages.ERROR_ADDING % (user.username, 'members'))
+        if not type(user) is get_user_model():
+            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('User', type(user)))
+        
         self.members.add(user)
 
     def _remove_user(self, user):
         if not user in self.members.all():
             raise ValueError(AbstractGroup.ErrorMessages.ERROR_REMOVING % (user.username, 'members'))
+        if not type(user) is get_user_model():
+            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('User', type(user)))
+        
         self.members.remove(user)
 
-    def _ban_user(self, user):
+    def _ban(self, user):
         AbstractGroup._remove_user(user)
 
         if user in self.banned_users.all():
@@ -122,11 +128,17 @@ class AbstractGroup(DefaultFields):
     def _add_game(self, game): 
         if game in self.games.all():
             raise ValueError(AbstractGroup.ErrorMessages.ERROR_ADDING % (game.name, 'games'))
+        if not type(game) is Game:
+            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('Game', type(game)))
+        
         self.games.add(game)
 
     def _remove_game(self, game):
         if not game in self.games.all():
             raise ValueError(AbstractGroup.ErrorMessages.ERROR_REMOVING % (game.name, 'games'))
+        if not type(game) is Game:
+            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('Game', type(game)))
+        
         self.games.remove(game)
 
     """Dunder methods"""
@@ -165,7 +177,7 @@ class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo
 
 class Event(AbstractGroup):
     
-    group = models.ForeignKey(Squad, blank=True, null=True, on_delete=models.CASCADE)  # Para que um grupo possa criar eventos de jogos
+    squad = models.ForeignKey(Squad, blank=True, null=True, on_delete=models.CASCADE)  # Para que um squad possa criar eventos de jogos
     
     creator = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, editable=False, related_name='event_creator', on_delete=models.CASCADE)
     host = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, related_name='event_host', on_delete=models.CASCADE)
