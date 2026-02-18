@@ -99,87 +99,69 @@ class User(DefaultFields, AbstractUser):
         self.status = self.Status.BANNED
 
     """Methods to add and remove games and friends"""
-    def add(self, object): 
-        obj_type = type(object)
-        if obj_type == User: self._add_friend(user=object)
-        elif obj_type == Game: self._add_game(game=object)
-        else:
-            raise TypeError(f"Object of User or Game class expected, got {obj_type} instead")
-    
-    def add_many(self, *objects): 
-        for object in objects:
-            self.add(object)
+    def add(self, *args):
+        for obj in args:
+            obj_type = type(obj)
+            if obj_type == User: self._add_friend(user=obj)
+            elif obj_type == Game: self._add_game(game=obj)
+            else:
+                raise TypeError(f"Object of User or Game class expected, got {obj_type} instead")
 
-    def remove(self, object): 
-        obj_type = type(object)
-        if obj_type is User: self._remove_friend(object)
-        elif obj_type is Game: self._remove_game(object)
-        else:
-            raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
-    
-    def remove_many(self, *objects): 
-        for object in objects:
-            self.remove(object)
+    def remove(self, *args):
+        for obj in args:
+            obj_type = type(obj)
+            if obj_type is User: self._remove_friend(obj)
+            elif obj_type is Game: self._remove_game(obj)
+            else:
+                raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
 
     """Methods to block users"""
-    def block(self, user): 
-        if user in self.blocked_users.all():
-            raise ValueError(f"Coudn't block user {user}: already blocked")
-        if not type(user) is User:
-            raise TypeError(f"Object of User type expected, got {type(user)} instead")
-        
-        if user in self.friends.all():
-            self._remove_friend(user)
-        self.blocked_users.add(user)
+    def block(self, *args):
+        for user in args:
+            if user in self.blocked_users.all():
+                raise ValueError(f"Coudn't block user {user}: already blocked")
+            if not type(user) is User:
+                raise TypeError(f"Object of User type expected, got {type(user)} instead")
+            
+            if user in self.friends.all():
+                self._remove_friend(user)
+            self.blocked_users.add(user)
 
-    def block_many(self, *users):
-        for user in users: 
-            self.block(user)
-
-    def unblock(self, user): 
-        if user not in self.blocked_users.all():
-            raise ValueError(f"Coudn't unblock user {user}: not blocked")
-        if not type(user) is User:
-            raise TypeError(f"Object of User type expected, got {type(user)} instead")
-        
-        self.blocked_users.remove(user)
-
-    def unblock_many(self, *users):
-        for user in users: 
-            self.unblock(user)
+    def unblock(self, *args):
+        for user in args:
+            if user not in self.blocked_users.all():
+                raise ValueError(f"Coudn't unblock user {user}: not blocked")
+            if not type(user) is User:
+                raise TypeError(f"Object of User type expected, got {type(user)} instead")
+            
+            self.blocked_users.remove(user)
 
     """Muting methods"""
-    def mute(self, object): 
-        obj_type = type(object)
+    def mute(self, *args): 
+        for obj in args:
+            obj_type = type(obj)
 
-        if obj_type is User:
-            self.muted_users.add(object)
-        elif obj_type is Squad:
-            self.muted_squads.add(object)
-        elif obj_type is Event:
-            self.muted_squads.add(object)
-        else:
-            raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
-        
-    def mute_many(self, *objects):
-        for object in objects:
-            self.mute(object)
-    
-    def unmute(self, object):
-        obj_type = type(object)
+            if obj_type is User:
+                self.muted_users.add(obj)
+            elif obj_type is Squad:
+                self.muted_squads.add(obj)
+            elif obj_type is Event:
+                self.muted_squads.add(obj)
+            else:
+                raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
+            
+    def unmute(self, *args):
+        for obj in args:
+            obj_type = type(obj)
 
-        if obj_type is User:
-            self.muted_users.remove(object)
-        elif obj_type is Squad:
-            self.muted_squads.remove(object)
-        elif obj_type is Event:
-            self.muted_squads.remove(object)
-        else:
-            raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
-
-    def unmute_many(self, *objects):
-        for object in objects:
-            self.unmute(object)
+            if obj_type is User:
+                self.muted_users.remove(obj)
+            elif obj_type is Squad:
+                self.muted_squads.remove(obj)
+            elif obj_type is Event:
+                self.muted_squads.remove(obj)
+            else:
+                raise TypeError(f"Object of User, Squad or Event type expected, got {obj_type} instead")
 
     """Private methods"""
     def _add_game(self, game): 

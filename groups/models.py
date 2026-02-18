@@ -86,40 +86,35 @@ class AbstractGroup(DefaultFields):
         self.privacy = self.Privacy.PRIVATE
     
     """Related to members and games"""
-    def add(self, object):
-        obj_type = type(object)
+    def add(self, *args):
+        for obj in args:
+            obj_type = type(obj)
 
-        if obj_type is get_user_model():
-            self._add_user(object)
-        elif obj_type is Game:
-            self._add_game(object)
-        else:
-            raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
-        
-    def add_many(self, *objects):
-        for object in objects:
-            self.add(object)
+            if obj_type is get_user_model():
+                self._add_user(obj)
+            elif obj_type is Game:
+                self._add_game(obj)
+            else:
+                raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
 
-    def remove(self, object):
-        obj_type = type(object)
+    def remove(self, *args):
+        for obj in args:
+            obj_type = type(obj)
 
-        if obj_type is get_user_model():
-            self._remove_user(object)
-        elif obj_type is Game:
-            self._remove_game(object)
-        else:
-            raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
+            if obj_type is get_user_model():
+                self._remove_user(obj)
+            elif obj_type is Game:
+                self._remove_game(obj)
+            else:
+                raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
 
-    def remove_many(self, *objects):
-        for object in objects:
-            self.remove(object)
+    def ban(self, *args): 
+        for user in args:
+            self._remove_user(user)
 
-    def ban(self, user): 
-        self._ban(user)
-
-    def ban_many(self, *users):
-        for user in users:
-            self._ban(user)   
+            if user in self.banned_users.all():
+                raise ValueError(self.ErrorMessages.ERROR_BANNING % user)
+            self.banned_users.add(user)
         
     """Private functions"""
     def _add_user(self, user):
@@ -141,13 +136,6 @@ class AbstractGroup(DefaultFields):
             raise TypeError(self.ErrorMessages.SINGLE_TYPE_ERROR % ('User', type(user)))
         
         self.members.remove(user)
-
-    def _ban(self, user):
-        self._remove_user(user)
-
-        if user in self.banned_users.all():
-            raise ValueError(self.ErrorMessages.ERROR_BANNING % user)
-        self.banned_users.add(user)
 
     def _add_game(self, game): 
         if game in self.games.all():
