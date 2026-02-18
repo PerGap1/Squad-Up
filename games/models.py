@@ -28,7 +28,7 @@ class Game(DefaultFields):
         if not_given:
             raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
         
-        return Game.objects.create(**kwargs)
+        return cls.objects.create(**kwargs)
     
     def delete(self):
         if not self.active:

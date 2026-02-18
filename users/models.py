@@ -53,14 +53,14 @@ class User(DefaultFields, AbstractUser):
     @classmethod
     def create(cls, **kwargs):
         not_given = []
-        for field in cls.REQUIRED_FIELDS + ['email']:
+        for field in (['email'] + cls.REQUIRED_FIELDS):
             if not kwargs.get(field):
                 not_given.append(field)
 
         if not_given:
             raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
         
-        return User.objects.create(schedule=Schedule.create(), **kwargs)
+        return cls.objects.create(schedule=Schedule.create(), **kwargs)
     
     """Methods that don't operate with relational attributes"""
     def invert_color(self):
@@ -72,54 +72,54 @@ class User(DefaultFields, AbstractUser):
             raise ValueError(f"Coudn't delete user {self}: already deleted")
         self.active = False
 
-    def change_plan(self, plan):
-        plan = plan.upper()
+    def make_free(self):
+        message = "Coudn't change the plan: already %s"
+        if self.plan == self.Plan.FREE:
+            raise TypeError(message % 'Free')
+        self.plan = self.Plan.FREE
 
-        if self.plan == plan:
-            raise ValueError(f"User {self} is already on {plan.capitalize()} plan")
-        if plan == 'PRO':
-            self.plan = User.Plan.PRO
-        elif plan == 'FREE':
-            self.plan = User.Plan.FREE
-        else:
-            raise TypeError(f"Wrong type of plan passed to function 'change_plan'")
+    def make_pro(self):
+        message = "Coudn't change the plan: already %s"
+        if self.plan == self.Plan.PRO:
+            raise TypeError(message % 'Pro')
+        self.plan = self.Plan.PRO
 
     def ask_to_ban(self): self.ban_request = True
 
-    def restore(self): self.status = User.Status.ACTIVE
+    def restore(self): self.status = self.Status.ACTIVE
 
     def suspend(self):
-        if self.status == User.Status.SUSPENDED or self.status == User.Status.SUSPENDED:
+        if self.status == self.Status.SUSPENDED or self.status == self.Status.SUSPENDED:
             raise ValueError(f"User is already {self.status}")
-        self.status = User.Status.SUSPENDED
+        self.status = self.Status.SUSPENDED
 
     def ban(self):
-        if self.status == User.Status.BANNED:
+        if self.status == self.Status.BANNED:
             raise ValueError(f"User is already {self.status}")
-        self.status = User.Status.BANNED
+        self.status = self.Status.BANNED
 
     """Methods to add and remove games and friends"""
     def add(self, object): 
         obj_type = type(object)
-        if obj_type == User: User._add_friend(object)
-        elif obj_type == Game: User._add_game(object)
+        if obj_type == User: self._add_friend(user=object)
+        elif obj_type == Game: self._add_game(game=object)
         else:
             raise TypeError(f"Object of User or Game class expected, got {obj_type} instead")
     
     def add_many(self, objects): 
         for object in objects:
-            User.add(object)
+            self.add(object)
 
     def remove(self, object): 
         obj_type = type(object)
-        if obj_type is User: User._remove_friend(object)
-        elif obj_type is Game: User._remove_game(object)
+        if obj_type is User: self._remove_friend(object)
+        elif obj_type is Game: self._remove_game(object)
         else:
             raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
     
     def remove_many(self, objects): 
         for object in objects:
-            User.remove(object)
+            self.remove(object)
 
     """Methods to block users"""
     def block(self, user): 
@@ -129,12 +129,12 @@ class User(DefaultFields, AbstractUser):
             raise TypeError(f"Object of User type expected, got {type(user)} instead")
         
         if user in self.friends.all():
-            User._remove_friend(user)
+            self._remove_friend(user)
         self.blocked_users.add(user)
 
     def block_many(self, users):
         for user in users: 
-            User.block(user)
+            self.block(user)
 
     def unblock(self, user): 
         if user not in self.blocked_users.all():
@@ -146,7 +146,7 @@ class User(DefaultFields, AbstractUser):
 
     def unblock_many(self, users):
         for user in users: 
-            User.unblock(user)
+            self.unblock(user)
 
     """Muting methods"""
     def mute(self, object): 
@@ -163,7 +163,7 @@ class User(DefaultFields, AbstractUser):
         
     def mute_many(self, objects):
         for object in objects:
-            User.mute(object)
+            self.mute(object)
     
     def unmute(self, object):
         obj_type = type(object)
@@ -179,7 +179,7 @@ class User(DefaultFields, AbstractUser):
 
     def unmute_many(self, objects):
         for object in objects:
-            User.unmute(object)
+            self.unmute(object)
 
     """Private methods"""
     def _add_game(self, game): 

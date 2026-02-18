@@ -21,11 +21,12 @@ class AbstractGroup(DefaultFields):
         PRIVATE = 'PR', lazy('Private')
 
     class ErrorMessages:
-        ERROR_ADDING      = "Coudn't add %s to group %s: already in there"
-        ERROR_REMOVING    = "Coudn't remove %s from group's %s: not in there"
-        ERROR_PROMOTING   = "Coudn't promote %s to host: already the host"
+        ERROR_ADDING      = "Coudn't add %s to group %s: %s"
+        ERROR_REMOVING    = "Coudn't remove %s from group's %s: %s"
+        ERROR_PROMOTING   = "Coudn't promote %s to host: %s"
         ERROR_BANNING     = "Cannot ban user %s: already banned"
         ERROR_DELETING    = "Coudn't delete group %s: already deleted"
+        ERROR_PRIVACY     = "Coudn't change privacy: already %s"
         SINGLE_TYPE_ERROR = "Object of %s type expected, got %s instead"
 
     name = models.CharField(max_length=50)
@@ -58,91 +59,113 @@ class AbstractGroup(DefaultFields):
     
     def delete(self, *args, **kwargs):
         if not self.active:
-            raise ValueError(AbstractGroup.ErrorMessages.ERROR_DELETING % self.name)
+            raise ValueError(self.ErrorMessages.ERROR_DELETING % self.name)
         self.active = False
 
     """Related to host"""
     def promote_to_host(self, user):
         if self.host is user:
-            raise ValueError(AbstractGroup.ErrorMessages.ERROR_PROMOTING % (user.username))
+            raise ValueError(self.ErrorMessages.ERROR_PROMOTING % (user, 'already the host'))
+        if user not in self.members.all():
+            raise ValueError(self.ErrorMessages.ERROR_PROMOTING % (user, 'not in the group'))
         self.host = user
+
+    def make_public(self):
+        if self.privacy == self.Privacy.PUBLIC:
+            raise TypeError(self.ErrorMessages.ERROR_PRIVACY % 'public')
+        self.privacy = self.Privacy.PUBLIC
+
+    def make_linked(self):
+        if self.privacy == self.Privacy.LINKED:
+            raise TypeError(self.ErrorMessages.ERROR_PRIVACY % 'linked')
+        self.privacy = self.Privacy.LINKED
+
+    def make_private(self):
+        if self.privacy == self.Privacy.PRIVATE:
+            raise TypeError(self.ErrorMessages.ERROR_PRIVACY % 'private')
+        self.privacy = self.Privacy.PRIVATE
     
     """Related to members and games"""
     def add(self, object):
         obj_type = type(object)
 
         if obj_type is get_user_model():
-            AbstractGroup._add_user(object)
+            self._add_user(object)
         elif obj_type is Game:
-            AbstractGroup._add_game(object)
+            self._add_game(object)
         else:
             raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
         
     def add_many(self, objects):
         for object in objects:
-            AbstractGroup.add(object)
+            self.add(object)
 
     def remove(self, object):
         obj_type = type(object)
 
         if obj_type is get_user_model():
-            AbstractGroup._remove_user(object)
+            self._remove_user(object)
         elif obj_type is Game:
-            AbstractGroup._remove_game(object)
+            self._remove_game(object)
         else:
             raise TypeError(f"Object of User or Game type expected, got {obj_type} instead")
 
     def remove_many(self, objects):
         for object in objects:
-            AbstractGroup.remove(object)
+            self.remove(object)
 
     def ban(self, user): 
-        AbstractGroup._ban(user)
+        self._ban(user)
 
     def ban_many(self, users):
         for user in users:
-            AbstractGroup._ban(user)   
+            self._ban(user)   
         
     """Private functions"""
     def _add_user(self, user):
-        if user in self.members:
-            raise ValueError(AbstractGroup.ErrorMessages.ERROR_ADDING % (user.username, 'members'))
+        if user in self.members.all():
+            raise ValueError(self.ErrorMessages.ERROR_ADDING % (user, 'members', 'already there'))
+        if user in self.banned_users.all():
+            raise ValueError(self.ErrorMessages.ERROR_ADDING % (user, 'user is banned'))
         if not type(user) is get_user_model():
-            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('User', type(user)))
+            raise TypeError(self.ErrorMessages.SINGLE_TYPE_ERROR % ('User', type(user)))
         
         self.members.add(user)
 
     def _remove_user(self, user):
         if not user in self.members.all():
-            raise ValueError(AbstractGroup.ErrorMessages.ERROR_REMOVING % (user.username, 'members'))
+            raise ValueError(self.ErrorMessages.ERROR_REMOVING % (user, 'members', 'not in there'))
+        if user is self.host:
+            raise ValueError(self.ErrorMessages.ERROR_REMOVING % (user, 'members', 'user is the host'))
         if not type(user) is get_user_model():
-            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('User', type(user)))
+            raise TypeError(self.ErrorMessages.SINGLE_TYPE_ERROR % ('User', type(user)))
         
         self.members.remove(user)
 
     def _ban(self, user):
-        AbstractGroup._remove_user(user)
+        self._remove_user(user)
 
         if user in self.banned_users.all():
-            raise ValueError(AbstractGroup.ErrorMessages.ERROR_BANNING % user.username)
+            raise ValueError(self.ErrorMessages.ERROR_BANNING % user)
         self.banned_users.add(user)
 
     def _add_game(self, game): 
         if game in self.games.all():
-            raise ValueError(AbstractGroup.ErrorMessages.ERROR_ADDING % (game.name, 'games'))
+            raise ValueError(self.ErrorMessages.ERROR_ADDING % (game.name, 'games', 'game already there'))
         if not type(game) is Game:
-            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('Game', type(game)))
+            raise TypeError(self.ErrorMessages.SINGLE_TYPE_ERROR % ('Game', type(game)))
         
         self.games.add(game)
 
     def _remove_game(self, game):
         if not game in self.games.all():
-            raise ValueError(AbstractGroup.ErrorMessages.ERROR_REMOVING % (game.name, 'games'))
+            raise ValueError(self.ErrorMessages.ERROR_REMOVING % (game.name, 'games', 'not in there'))
         if not type(game) is Game:
-            raise TypeError(AbstractGroup.ErrorMessages.SINGLE_TYPE_ERROR % ('Game', type(game)))
+            raise TypeError(self.ErrorMessages.SINGLE_TYPE_ERROR % ('Game', type(game)))
         
         self.games.remove(game)
 
+    @classmethod
     def _validate(cls, **kwargs):        
         not_given = []
         for field in cls.REQUIRED_FIELDS:
@@ -178,7 +201,7 @@ class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo
         cls._validate(**kwargs)
 
         schedule = Schedule.create()
-        squad = Squad.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
+        squad = cls.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
         squad.add(squad.host)
 
         return squad
@@ -206,7 +229,7 @@ class Event(AbstractGroup):
         cls._validate(**kwargs)
 
         schedule = Schedule.create()
-        event = Event.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
+        event = cls.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
         event.add(event.host)
 
         return event
