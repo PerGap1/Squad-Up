@@ -28,9 +28,9 @@ class AbstractGroup(DefaultFields):
         ERROR_DELETING    = "Coudn't delete group %s: already deleted"
         SINGLE_TYPE_ERROR = "Object of %s type expected, got %s instead"
 
-    name = models.CharField(max_length=50, null=False, blank=False)
-    privacy = models.CharField(max_length=2, choices=Privacy, default=Privacy.PUBLIC, blank=False)
-    tag = models.CharField(max_length=7, unique=True, editable=False, null=False, blank=False)
+    name = models.CharField(max_length=50)
+    privacy = models.CharField(max_length=2, choices=Privacy, default=Privacy.PUBLIC)
+    tag = models.CharField(max_length=7, unique=True, editable=False)
     image = models.ImageField(default='default_pfp.jpg', upload_to='profile_pics')
 
     games = models.ManyToManyField(Game)
@@ -40,6 +40,8 @@ class AbstractGroup(DefaultFields):
     members = ...
     banned_users = ...
     schedule = ...
+
+    REQUIRED_FIELDS = ['name', 'creator', 'host']
     
     # chat...? Talvez importar um app chat, talvez criar nós mesmos e fazer um relacionamento 1 pra 1
     
@@ -141,6 +143,15 @@ class AbstractGroup(DefaultFields):
         
         self.games.remove(game)
 
+    def _validate(cls, **kwargs):        
+        not_given = []
+        for field in cls.REQUIRED_FIELDS:
+            if not kwargs.get(field):
+                not_given.append(field)
+
+        if not_given:
+            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
+
     """Dunder methods"""
     def __str__(self):
         return self.name
@@ -150,26 +161,30 @@ class AbstractGroup(DefaultFields):
     
     """Abstract methods"""
     @abstractmethod
-    def create(self, *args, **kwargs): ...
+    def create(self): ...
 
 
 class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo discord
 
-    creator = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, editable=False, related_name='squad_creator', on_delete=models.CASCADE)
-    host = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, related_name='squad_host', on_delete=models.CASCADE)
+    creator = models.ForeignKey(AUTH_USER_MODEL, editable=False, related_name='squad_creator', on_delete=models.CASCADE)
+    host = models.ForeignKey(AUTH_USER_MODEL, related_name='squad_host', on_delete=models.CASCADE)
     schedule = models.OneToOneField('schedule.Schedule', null=True, blank=True, related_name='squad_schedule', on_delete=models.CASCADE)
     
     members = models.ManyToManyField(AUTH_USER_MODEL, through='SquadMember', related_name='squad_members')
     banned_users = models.ManyToManyField(AUTH_USER_MODEL, through='SquadBan', related_name='squad_banned_users')
 
-    @staticmethod
-    def create(*args, **kwargs):
+    @classmethod
+    def create(cls, **kwargs):
+        cls._validate(**kwargs)
+
         schedule = Schedule.create()
-        squad = Squad.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, *args, **kwargs)
+        squad = Squad.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
+        squad.add(squad.host)
+
         return squad
     
-    def create_event(self, *args, **kwargs):
-        Event.create(group=self, *args, **kwargs)
+    def create_event(self, **kwargs):
+        Event.create(group=self, **kwargs)
 
     def get_events(self):
         return self.event_set.all()
@@ -179,15 +194,55 @@ class Event(AbstractGroup):
     
     squad = models.ForeignKey(Squad, blank=True, null=True, on_delete=models.CASCADE)  # Para que um squad possa criar eventos de jogos
     
-    creator = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, editable=False, related_name='event_creator', on_delete=models.CASCADE)
-    host = models.ForeignKey(AUTH_USER_MODEL, null=False, blank=False, related_name='event_host', on_delete=models.CASCADE)
+    creator = models.ForeignKey(AUTH_USER_MODEL, editable=False, related_name='event_creator', on_delete=models.CASCADE)
+    host = models.ForeignKey(AUTH_USER_MODEL, related_name='event_host', on_delete=models.CASCADE)
     schedule = models.OneToOneField('schedule.Schedule', null=True, blank=True, related_name='event_schedule', on_delete=models.CASCADE)
 
     members = models.ManyToManyField(AUTH_USER_MODEL, through='EventMember', related_name='event_members')
     banned_users = models.ManyToManyField(AUTH_USER_MODEL, through='EventBan', related_name='event_banned_users')
 
-    @staticmethod
-    def create(*args, **kwargs):
+    @classmethod
+    def create(cls, **kwargs):
+        cls._validate(**kwargs)
+
         schedule = Schedule.create()
-        event = Event.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, *args, **kwargs)
+        event = Event.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
+        event.add(event.host)
+
         return event
+    
+"""Relationship classes"""
+class SquadMember(DefaultFields):
+
+    user = models.ForeignKey(AUTH_USER_MODEL, related_name='squad_member_user', on_delete=models.CASCADE)
+    squad = models.ForeignKey(Squad, related_name='squad_member_squad', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.username} in squad {self.squad.name}"
+
+
+class EventMember(DefaultFields):
+
+    user = models.ForeignKey(AUTH_USER_MODEL, related_name='event_member_user', on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, related_name='event_member_event', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.username} in event {self.event.name}"
+
+
+class SquadBan(DefaultFields):
+
+    user = models.ForeignKey(AUTH_USER_MODEL, related_name='squad_ban_user', on_delete=models.CASCADE)
+    squad = models.ForeignKey(Squad, related_name='squad_ban_squad', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.username} banned in squad {self.squad.name}"
+
+
+class EventBan(DefaultFields):
+
+    user = models.ForeignKey(AUTH_USER_MODEL, blank=True, null=True, related_name='event_ban_user', on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, blank=True, null=True, related_name='event_ban_event', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.username} banned in event {self.event.name}"

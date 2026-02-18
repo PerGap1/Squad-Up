@@ -5,6 +5,7 @@ from squadup.settings import AUTH_USER_MODEL
 
 
 class Game(DefaultFields): 
+
     name = models.CharField(max_length=50)
     artwork = models.ImageField()           # Mudar o nome?
     description = models.TextField()
@@ -15,8 +16,18 @@ class Game(DefaultFields):
 
     creator = models.ForeignKey(AUTH_USER_MODEL, null=True, related_name='game_creator', on_delete=models.CASCADE)
 
-    @staticmethod
-    def create(**kwargs):
+    REQUIRED_FIELDS = ['name', 'released', 'creator']
+
+    @classmethod
+    def create(cls, **kwargs):
+        not_given = []
+        for field in cls.REQUIRED_FIELDS:
+            if not kwargs.get(field):
+                not_given.append(field)
+
+        if not_given:
+            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
+        
         return Game.objects.create(**kwargs)
     
     def delete(self):

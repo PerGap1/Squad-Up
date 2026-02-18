@@ -5,8 +5,9 @@ from django.utils.translation import gettext_lazy as lazy
 
 class Schedule(DefaultFields):
 
-    def create(self, **kwargs): 
-        return self.objects.create(**kwargs)
+    @staticmethod
+    def create(**kwargs): 
+        return Schedule.objects.create(**kwargs)
     
     def delete(self):
         if not self.active:
@@ -43,8 +44,18 @@ class Availability(DefaultFields):
     start_time = models.TimeField()
     end_time = models.TimeField()
 
+    REQUIRED_FIELDS = ['schedule', 'day_of_week', 'start_time', 'end_time']
+
     @classmethod
     def create(cls, **kwargs):
+        not_given = []
+        for field in cls.REQUIRED_FIELDS:
+            if not kwargs.get(field):
+                not_given.append(field)
+
+        if not_given:
+            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
+        
         return cls.objects.create(**kwargs)
     
     def delete(self):

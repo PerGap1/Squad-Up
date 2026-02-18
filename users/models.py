@@ -21,9 +21,9 @@ class User(DefaultFields, AbstractUser):
         SUSPENDED = 'SUS', lazy('Suspended')
         BANNED = 'BAN', lazy('Banned')
 
-    email = models.EmailField(lazy("email address"), unique=True, blank=False, null=False)
+    email = models.EmailField(lazy("email address"), unique=True)
     
-    country = CountryField(blank=False)
+    country = CountryField()
     dark_mode = models.BooleanField(default=True)       # Eventualmente dá para trocar ou adicionar algo como color: codigo_rgb
     profile_picture = models.ImageField(default='default_pfp.jpg', upload_to='profile_pics')
 
@@ -39,19 +39,27 @@ class User(DefaultFields, AbstractUser):
     blocked_users = models.ManyToManyField('self', through='Block', symmetrical=False)
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=True)
 
-    schedule = models.OneToOneField('schedule.Schedule', null=False, related_name='user_schedule', on_delete=models.CASCADE)
+    schedule = models.OneToOneField('schedule.Schedule', related_name='user_schedule', on_delete=models.CASCADE)
 
     muted_users = models.ManyToManyField('self', through='MutedUser', related_name='user_muted_users', symmetrical=False)
     muted_squads = models.ManyToManyField('groups.Squad', through='MutedSquad', related_name='user_muted_squads', symmetrical=False)
     muted_events = models.ManyToManyField('groups.Event', through='MutedEvent', related_name='user_muted_events', symmetrical=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name', ]
+    REQUIRED_FIELDS = ['username', 'country', 'first_name', 'last_name']
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
 
-    @staticmethod
-    def create(**kwargs):
+    @classmethod
+    def create(cls, **kwargs):
+        not_given = []
+        for field in cls.REQUIRED_FIELDS + ['email']:
+            if not kwargs.get(field):
+                not_given.append(field)
+
+        if not_given:
+            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
+        
         return User.objects.create(schedule=Schedule.create(), **kwargs)
     
     """Methods that don't operate with relational attributes"""
@@ -196,3 +204,43 @@ class User(DefaultFields, AbstractUser):
     
     def __str__(self):
         return self.username or self.email
+    
+"""Relationship classes"""
+class Friendship(DefaultFields):
+    user_1 = models.ForeignKey(User, related_name='friendship_user_1', on_delete=models.CASCADE)
+    user_2 = models.ForeignKey(User, related_name='friendship_user_2', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user_2} is a friend of {self.user_2}"
+
+
+class Block(DefaultFields):
+    blocking = models.ForeignKey(User, related_name='block_blocking', on_delete=models.CASCADE)
+    blocked = models.ForeignKey(User, related_name='block_blocked', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.blocking} blocked {self.blocked}"
+    
+
+class MutedUser(DefaultFields):
+    muting = models.ForeignKey(User, related_name='muted_user_muting', on_delete=models.CASCADE)
+    muted = models.ForeignKey(User, related_name='muted_user_muted', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.muting} muted user {self.user}"
+    
+
+class MutedSquad(DefaultFields):
+    muting = models.ForeignKey(User, related_name='muted_squad_muting', on_delete=models.CASCADE)
+    muted = models.ForeignKey('groups.Squad', related_name='muted_squad_muted', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.muting} muted squad {self.squad}"
+    
+
+class MutedEvent(DefaultFields):
+    muting = models.ForeignKey(User, related_name='muted_event_muting', on_delete=models.CASCADE)
+    muted = models.ForeignKey('groups.Event', related_name='muted_event_muted', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.muting} muted event {self.event}"
