@@ -18,31 +18,21 @@ class Game(DefaultFields):
 
     REQUIRED_FIELDS = ['name', 'released', 'creator']
 
-    @classmethod
-    def create(cls, **kwargs):
+    def save(self, **kwargs):
         not_given = []
-        for field in cls.REQUIRED_FIELDS:
-            if not kwargs.get(field):
+        for field in self.REQUIRED_FIELDS:
+            if not hasattr(self, field) or not getattr(self, field):
                 not_given.append(field)
 
         if not_given:
             raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
         
-        return cls.objects.create(**kwargs)
+        return super().save(**kwargs)
     
-    def delete(self):
+    def delete(self):           # Talvez depreciar
         if not self.active:
             raise ValueError(f"Cannot delete game {self.name}: already deleted")
         self.active = False
-
-    def get_users(self):
-        return self.user_set.all()
-    
-    def get_squads(self):
-        return self.squad_set.all()
-    
-    def get_events(self):
-        return self.event_set.all()
 
     def __str__(self):
         return self.name

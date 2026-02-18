@@ -11,21 +11,14 @@ class Schedule(DefaultFields):
         elif hasattr(self, 'squad_schedule'): return self.squad_schedule
         elif hasattr(self, 'event_schedule'): return self.event_schedule
         else: raise RuntimeError("This Schedule object has no holder")
-
-    @staticmethod
-    def create(**kwargs): 
-        return Schedule.objects.create(**kwargs)
     
-    def delete(self):
+    def delete(self):       # Talvez funções delete serão abandonadas
         if not self.active:
             raise ValueError(f"Coudn't delete {self}: already deleted")
         self.active = False
     
-    def get_availabilities(self):
-        return self.availability_set.all()
-    
     def new_availability(self, **kwargs): 
-        return Availability.create(schedule=self, **kwargs)
+        return Availability.objects.create(schedule=self, **kwargs)
         
     def __str__(self):
         return f"{self.holder}'s schedule"
@@ -50,19 +43,18 @@ class Availability(DefaultFields):
 
     REQUIRED_FIELDS = ['schedule', 'day_of_week', 'start_time', 'end_time']
 
-    @classmethod
-    def create(cls, **kwargs):
+    def save(self, **kwargs):
         not_given = []
-        for field in cls.REQUIRED_FIELDS:
-            if not kwargs.get(field):
+        for field in self.REQUIRED_FIELDS:
+            if not hasattr(self, field) or not getattr(self, field):
                 not_given.append(field)
 
         if not_given:
             raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
         
-        return cls.objects.create(**kwargs)
+        return super().save(**kwargs)
     
-    def delete(self):
+    def delete(self):           # Talvez deprecate
         if not self.active:
             raise ValueError("Coudn't delete an availability: already deleted")
         self.active = False

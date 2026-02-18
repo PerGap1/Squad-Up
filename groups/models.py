@@ -11,6 +11,14 @@ from schedule.models import Schedule
 from django.contrib.auth import get_user_model
 
 
+class GroupManager(models.Manager):
+
+    def create(self, **kwargs):
+        group = super().create(**kwargs)
+        group.members.add(group.host)
+        return group
+
+
 class AbstractGroup(DefaultFields):
     class Meta:
         abstract = True
@@ -42,6 +50,8 @@ class AbstractGroup(DefaultFields):
     banned_users = ...
     schedule = ...
 
+    objects = GroupManager()
+
     REQUIRED_FIELDS = ['name', 'creator', 'host']
     
     # chat...? Talvez importar um app chat, talvez criar nós mesmos e fazer um relacionamento 1 pra 1
@@ -57,7 +67,7 @@ class AbstractGroup(DefaultFields):
             return AbstractGroup.tag_creator()
         return tag
     
-    def delete(self, *args, **kwargs):
+    def delete(self):      # Talvez depreciar
         if not self.active:
             raise ValueError(self.ErrorMessages.ERROR_DELETING % self.name)
         self.active = False
@@ -85,6 +95,7 @@ class AbstractGroup(DefaultFields):
             raise TypeError(self.ErrorMessages.ERROR_PRIVACY % 'private')
         self.privacy = self.Privacy.PRIVATE
     
+    """Quality of life"""
     """Related to members and games"""
     def add(self, *args):
         for obj in args:
@@ -115,6 +126,22 @@ class AbstractGroup(DefaultFields):
             if user in self.banned_users.all():
                 raise ValueError(self.ErrorMessages.ERROR_BANNING % user)
             self.banned_users.add(user)
+
+    def save(self, **kwargs):
+        not_given = []
+        for field in self.REQUIRED_FIELDS:
+            if not hasattr(self, field) or not getattr(self, field):
+                not_given.append(field)
+
+        if not_given:
+            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
+        
+        if not hasattr(self, 'schedule') or not self.schedule:
+            self.schedule = Schedule.objects.create()
+        if not hasattr(self, 'tag') or not self.tag:
+            self.tag = self.tag_creator()
+
+        return super().save(**kwargs)
         
     """Private functions"""
     def _add_user(self, user):
@@ -152,27 +179,13 @@ class AbstractGroup(DefaultFields):
             raise TypeError(self.ErrorMessages.SINGLE_TYPE_ERROR % ('Game', type(game)))
         
         self.games.remove(game)
-
-    @classmethod
-    def _validate(cls, **kwargs):        
-        not_given = []
-        for field in cls.REQUIRED_FIELDS:
-            if not kwargs.get(field):
-                not_given.append(field)
-
-        if not_given:
-            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
-
+    
     """Dunder methods"""
     def __str__(self):
         return self.name
     
     def __len__(self):
         return len(self.members.all())
-    
-    """Abstract methods"""
-    @abstractmethod
-    def create(self): ...
 
 
 class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo discord
@@ -184,21 +197,8 @@ class Squad(AbstractGroup): # Talvez permitir que um grupo tenha subgrupos, tipo
     members = models.ManyToManyField(AUTH_USER_MODEL, through='SquadMember', related_name='squad_members')
     banned_users = models.ManyToManyField(AUTH_USER_MODEL, through='SquadBan', related_name='squad_banned_users')
 
-    @classmethod
-    def create(cls, **kwargs):
-        cls._validate(**kwargs)
-
-        schedule = Schedule.create()
-        squad = cls.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
-        squad.add(squad.host)
-
-        return squad
-    
     def create_event(self, **kwargs):
         Event.create(group=self, **kwargs)
-
-    def get_events(self):
-        return self.event_set.all()
 
 
 class Event(AbstractGroup):
@@ -212,15 +212,6 @@ class Event(AbstractGroup):
     members = models.ManyToManyField(AUTH_USER_MODEL, through='EventMember', related_name='event_members')
     banned_users = models.ManyToManyField(AUTH_USER_MODEL, through='EventBan', related_name='event_banned_users')
 
-    @classmethod
-    def create(cls, **kwargs):
-        cls._validate(**kwargs)
-
-        schedule = Schedule.create()
-        event = cls.objects.create(tag=AbstractGroup.tag_creator(), schedule=schedule, **kwargs)
-        event.add(event.host)
-
-        return event
     
 """Relationship classes"""
 class SquadMember(DefaultFields):

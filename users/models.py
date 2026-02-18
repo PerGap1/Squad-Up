@@ -50,24 +50,27 @@ class User(DefaultFields, AbstractUser):
 
     # Lembrar de direcionar users recém registrados para uma tela de engajamento
 
-    @classmethod
-    def create(cls, **kwargs):
+    """Guarantees that all required fields will be informed, and that a schedule will be created if it doesn't exist"""
+    def save(self, **kwargs):
         not_given = []
-        for field in (['email'] + cls.REQUIRED_FIELDS):
-            if not kwargs.get(field):
+        for field in (['email'] + self.REQUIRED_FIELDS):
+            if not hasattr(self, field) or not getattr(self, field):
                 not_given.append(field)
-
+                
         if not_given:
             raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
         
-        return cls.objects.create(schedule=Schedule.create(), **kwargs)
+        if not hasattr(self, 'schedule') or not self.schedule:
+            self.schedule = Schedule.objects.create()
+
+        return super().save(**kwargs)
     
-    """Methods that don't operate with relational attributes"""
+    """Methods that may be called from the front-end, or to help when operating with the shell"""
     def invert_color(self):
         if self.dark_mode: self.dark_mode = False
         else: self.dark_mode = True
     
-    def delete(self):
+    def delete(self):           # Talvez depreciar
         if not self.active:
             raise ValueError(f"Coudn't delete user {self}: already deleted")
         self.active = False
@@ -98,6 +101,7 @@ class User(DefaultFields, AbstractUser):
             raise ValueError(f"User is already {self.status}")
         self.status = self.Status.BANNED
 
+    """Many methods for quality of life"""
     """Methods to add and remove games and friends"""
     def add(self, *args):
         for obj in args:
