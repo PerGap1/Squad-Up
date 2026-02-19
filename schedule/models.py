@@ -19,6 +19,9 @@ class Schedule(DefaultFields):
     
     def new_availability(self, **kwargs): 
         return Availability.objects.create(schedule=self, **kwargs)
+    
+    def get_avails(self):
+        return self.availability_schedule.all()
         
     def __str__(self):
         return f"{self.holder}'s schedule"
@@ -58,6 +61,22 @@ class Availability(DefaultFields):
         if not self.active:
             raise ValueError("Coudn't delete an availability: already deleted")
         self.active = False
+
+    def is_compatible(self, other):
+        return self.are_compatible(first=self, second=other)
+
+    @classmethod
+    def are_compatible(cls, first:Availability, second:Availability):
+        first = first.start_time.minute + 10
+        second = second.start_time.minute + 10
+        return cls._verify_condition(first, second) or cls._verify_condition(second, first)
+
+    @staticmethod
+    def _verify_condition(first, second):
+        condition_1 = first.start_time < second.end_time
+        condition_2 = first.end_time > second.start_time
+
+        return condition_1 and condition_2 and first.day_of_week == second.day_of_week
 
     def __str__(self):
         return f'{self.day_of_week}, {self.start_time} to {self.end_time}'

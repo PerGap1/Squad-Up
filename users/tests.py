@@ -34,13 +34,4 @@ class UserModelTests(TestCase):
             self.assertIsNone(event)
         else:
             raise
-
-    def test_game_not_created(self):
-        game = None
-        try:
-            game = Game.objects.create()
-        except ValueError: 
-            self.assertIsNone(game)
-        else:
-            raise
 '''
