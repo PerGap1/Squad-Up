@@ -5,13 +5,82 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 
+        {% load static %}
         <title>Squad Up{% if title%} - {{ title }}{% endif %}</title>
     </head>
     <body>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <img src="{% static 'core/logo.png' %}" class="img-fluid" style="height: 45px;">
+                <a class="navbar-brand" href="/">Squad Up</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <div class="dropdown">
+                                <button class="btn btn-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Users
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'users:user-list' %}">List</a></li>
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'users:user-create' %}">Create</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <div class="dropdown">
+                                <button class="btn btn-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Games
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'games:game-list' %}">List</a></li>
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'games:game-create' %}">Create</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <div class="dropdown">
+                                <button class="btn btn-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Squads
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'groups:squad-list' %}">List</a></li>
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'groups:squad-create' %}">Create</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <div class="dropdown">
+                                <button class="btn btn-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Events
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'groups:event-list' %}">List</a></li>
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'groups:event-create' %}">Create</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <div class="dropdown">
+                                <button class="btn btn-transparent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Schedule
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'schedule:schedule-list' %}">List</a></li>
+                                    <li><a class="link-underline link-underline-opacity-0" href="{% url 'schedule:schedule-create' %}">Create</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
         <div class="row justify-content-center">
             <div class="col-8">
                 {% block content%}
-                <h1>Placeholder</h1>
+                <h1>Base.html</h1>
                 {% endblock %}
             </div>
         </div>

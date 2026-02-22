@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse
+
 from .models import *
 
 
@@ -29,4 +31,5 @@ class UserUpdateView(UserView, UpdateView):
     fields = ['email', 'username', 'password', 'country', 'profile_picture', 'dark_mode', 'discord', 'plan', 'games', 'friends']
 
 
-class UserDeleteView(UserView, DeleteView): pass
+class UserDeleteView(UserView, DeleteView):
+    success_url = '/'

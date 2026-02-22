@@ -9,4 +9,11 @@
     <p>{{ object.discord }}</p>
     <p>{{ object.plan }}</p>
     <p>{{ object.status }}</p>
+
+    <a class="btn btn-primary" href="{% url 'users:user-update' object.pk %}">
+        Update
+    </a>
+    <a class="btn btn-danger" href="{% url 'users:user-delete' object.pk %}">
+        Delete
+    </a>
 {% endblock %}

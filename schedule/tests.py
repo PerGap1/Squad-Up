@@ -129,44 +129,52 @@ class AvailabilityModelTest(TestCase):
         else:
             raise
 
+    def test_availability_are_compatible(self):
+        schedule = User.objects.first().schedule
+
+        first = schedule.get_avails()[0]
+        second = schedule.get_avails()[1]
+
+        self.assertTrue(Availability.are_compatible(first, second))
+
     """Test names are relative to the main availability"""
     def test_availability_start_compatible(self):
-        schedule = User.objects.get(id=1).schedule
+        schedule = User.objects.first().schedule
         first = schedule.get_avails()[0]
         second = schedule.get_avails()[1]
 
         self.assertTrue(first.is_compatible(second))
 
     def test_availability_end_compatible(self):
-        schedule = User.objects.get(id=1).schedule
+        schedule = User.objects.first().schedule
         first = schedule.get_avails()[0]
         second = schedule.get_avails()[2]
 
         self.assertTrue(Availability.are_compatible(first, second))
 
     def test_availability_inside_compatible(self):
-        schedule = User.objects.get(id=1).schedule
+        schedule = User.objects.first().schedule
         first = schedule.get_avails()[0]
         second = schedule.get_avails()[3]
 
         self.assertTrue(first.is_compatible(second))
 
     def test_availability_outside_compatible(self):
-        schedule = User.objects.get(id=1).schedule
+        schedule = User.objects.first().schedule
         first = schedule.get_avails()[0]
         second = schedule.get_avails()[4]
 
         self.assertTrue(first.is_compatible(second))
 
     def test_availability_before_not_compatible(self):
-        schedule = User.objects.get(id=1).schedule
+        schedule = User.objects.first().schedule
         first = schedule.get_avails()[0]
         second = schedule.get_avails()[5]
 
         self.assertFalse(first.is_compatible(second))
 
     def test_availability_other_day_not_compatible(self):
-        schedule = User.objects.get(id=1).schedule
+        schedule = User.objects.first().schedule
         first = schedule.get_avails()[0]
         second = schedule.get_avails()[6]
 

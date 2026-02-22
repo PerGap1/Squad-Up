@@ -72,6 +72,22 @@ class AbstractGroup(DefaultFields):
             raise ValueError(self.ErrorMessages.ERROR_DELETING % self.name)
         self.active = False
 
+    def save(self, **kwargs):
+        not_given = []
+        for field in self.REQUIRED_FIELDS:
+            if not hasattr(self, field) or not getattr(self, field):
+                not_given.append(field)
+
+        if not_given:
+            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
+        
+        if not hasattr(self, 'schedule') or not self.schedule:
+            self.schedule = Schedule.objects.create()
+        if not hasattr(self, 'tag') or not self.tag:
+            self.tag = self.tag_creator()
+
+        return super().save(**kwargs)
+
     """Related to host"""
     def promote_to_host(self, user):
         if self.host is user:
@@ -126,22 +142,6 @@ class AbstractGroup(DefaultFields):
             if user in self.banned_users.all():
                 raise ValueError(self.ErrorMessages.ERROR_BANNING % user)
             self.banned_users.add(user)
-
-    def save(self, **kwargs):
-        not_given = []
-        for field in self.REQUIRED_FIELDS:
-            if not hasattr(self, field) or not getattr(self, field):
-                not_given.append(field)
-
-        if not_given:
-            raise ValueError(f"Some required field(s) were not passed: {', '.join(not_given)}")
-        
-        if not hasattr(self, 'schedule') or not self.schedule:
-            self.schedule = Schedule.objects.create()
-        if not hasattr(self, 'tag') or not self.tag:
-            self.tag = self.tag_creator()
-
-        return super().save(**kwargs)
         
     """Private functions"""
     def _add_user(self, user):
