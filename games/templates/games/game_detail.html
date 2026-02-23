@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{{ object.name }}</h2>
+    <h6>{{ object.description }}</h6>
+    <!-- <img src=""> -->
+    <p>{{ object.released }}</p>
+    <p>{{ object.creator }}</p>
+
+    <a class="btn btn-outline-secondary" href="{% url 'games:game-update' object.pk %}">
+        Update
+    </a>
+    <a class="btn btn-outline-danger" href="{% url 'games:game-delete' object.pk %}">
+        Delete
+    </a>
+{% endblock %}

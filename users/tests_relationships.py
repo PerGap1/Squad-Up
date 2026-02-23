@@ -7,6 +7,7 @@ from groups.models import Squad, Event
 from games.models import Game
 from .tests import UserModelTests
 
+
 class UserModelRelationshipsTests(TestCase):
         
     def setUp(self):

@@ -18,7 +18,7 @@ class Game(DefaultFields):
 
     REQUIRED_FIELDS = ['name', 'released', 'creator']
 
-    def save(self, **kwargs):
+    def save(self:Game, **kwargs):
         not_given = []
         for field in self.REQUIRED_FIELDS:
             if not hasattr(self, field) or not getattr(self, field):
@@ -29,10 +29,10 @@ class Game(DefaultFields):
         
         return super().save(**kwargs)
     
-    def delete(self):           # Talvez depreciar
-        if not self.active:
-            raise ValueError(f"Cannot delete game {self.name}: already deleted")
-        self.active = False
+    # def delete(self):           # Talvez depreciar
+    #     if not self.active:
+    #         raise ValueError(f"Cannot delete game {self.name}: already deleted")
+    #     self.active = False
 
     def __str__(self):
         return self.name

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Games</h2>
+    <ul>
+        {% for game in object_list %}
+            <li>
+                <div class="row">
+                    <h6 class="col-md-3"><a href="{% url 'games:game-detail' game.pk %}">{{ game.name }}</a></h6>
+
+                    {% if game.is_modified %}
+                        <p class="text-secondary col-md-3">Edited</p>
+                    {% endif %}
+                </div>
+                <p>Release: {{ game.released }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

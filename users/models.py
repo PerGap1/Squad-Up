@@ -8,7 +8,7 @@ from games.models import Game
 from groups.models import Squad, Event
 from core.models import DefaultFields
 from schedule.models import Schedule
-    
+
 
 class User(DefaultFields, AbstractUser): 
 
@@ -70,10 +70,10 @@ class User(DefaultFields, AbstractUser):
         if self.dark_mode: self.dark_mode = False
         else: self.dark_mode = True
     
-    def delete(self):           # Talvez depreciar
-        if not self.active:
-            raise ValueError(f"Coudn't delete user {self}: already deleted")
-        self.active = False
+    # def delete(self):           # Talvez depreciar
+        # if not self.active:
+        #     raise ValueError(f"Coudn't delete user {self}: already deleted")
+        # self.active = False
 
     def make_free(self):
         message = "Coudn't change the plan: already %s"

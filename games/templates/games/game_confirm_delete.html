@@ -6,7 +6,7 @@
             {% csrf_token %}
             <h2>Deletar?</h2>
             <div>
-                <a class="btn btn-outline-secondary" href="{% url 'users:user-detail' user.id %}">Cancel</a>
+                <a class="btn btn-outline-secondary" href="{% url 'games:game-detail' game.id %}">Cancel</a>
                 <button class="btn btn-outline-danger align-item-end" type="submit">Delete</button>
             </div>
         </form>

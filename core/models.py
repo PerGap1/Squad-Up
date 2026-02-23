@@ -1,6 +1,7 @@
 from django.db import models
 from squadup.settings import AUTH_USER_MODEL
 from abc import abstractmethod
+import datetime
 
 """
 Campos que estarão em todos os models, para facilitar com algumas informações que poderão ser usadas,
@@ -16,8 +17,11 @@ class DefaultFields(models.Model):
 
     DEFAULT_FIELDS = []
 
+    def is_modified(self):
+        return self.modified > self.created + datetime.timedelta(minutes=2)
+
     @abstractmethod
     def create(**kwargs): pass
 
-    @abstractmethod
-    def delete(): pass
+    # @abstractmethod
+    # def delete(): pass
