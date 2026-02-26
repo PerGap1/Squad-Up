@@ -6,6 +6,9 @@
     <!-- <img src=""> -->
     <p>{{ object.released }}</p>
     <p>{{ object.creator }}</p>
+    {% if object.is_modified %}
+        <p class="text-secondary">Edited</p>
+    {% endif %}
 
     <a class="btn btn-outline-secondary" href="{% url 'games:game-update' object.pk %}">
         Update

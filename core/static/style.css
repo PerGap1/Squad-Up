@@ -1,0 +1,17 @@
+body {
+    /* background: linear-gradient(rgb(20, 20, 20), rgb(49, 59, 78), rgb(96, 143, 251)); */
+    background: linear-gradient(rgb(255, 255, 255), rgb(96, 143, 251));
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+/* nav{
+    background-color: transparent;
+} */
+/* .navbar-brand {
+    font-family: 'league-spartan';
+    font-weight: 900;
+} */
+.league-spartan {
+    font-family: "League Spartan";
+    font-weight: 700;
+}
