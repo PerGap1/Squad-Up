@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Squads</h2>
+    <ul>
+        {% for squad in object_list %}
+            <li>
+                <div class="row">
+                    <h6 class="col-md-3"><a href="{% url 'groups:squad-detail' squad.pk %}">{{ squad.name }}</a></h6>
+
+                    {% if squad.is_modified %}
+                        <p class="text-secondary col-md-3">Edited</p>
+                    {% endif %}
+                </div>
+                <p>Host: {{ squad.host }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

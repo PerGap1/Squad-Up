@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{{ object }}</h2>
+
+    <p>{{ object.attribute }}</p>
+    <p>{{ object.attribute }}</p>
+
+    {% if object.is_modified %}
+        <p class="text-secondary">Modified</p>
+    {% endif %}
+
+    <a class="btn btn-outline-secondary" href="{% url 'app:model-update' object.pk %}">
+        Update
+    </a>
+    <a class="btn btn-outline-danger" href="{% url 'app:model-delete' object.pk %}">
+        Delete
+    </a>
+{% endblock %}

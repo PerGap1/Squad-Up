@@ -21,7 +21,9 @@ class DefaultFields(models.Model):
         return self.modified > self.created + datetime.timedelta(minutes=2)
 
     @abstractmethod
-    def create(**kwargs): pass
+    def create(**kwargs): ...
+    # @abstractmethod
+    # def list_attr(self): ...
 
     # @abstractmethod
     # def delete(): pass

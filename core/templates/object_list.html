@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Game</h2>
+    <h2>Class</h2>
     <ul>
         {% for object in object_list %}
             <li>
                 <div class="row">
-                    <h6 class="col-md-3"><a href="{% url 'games:game-detail' object.pk %}">{{ object }}</a></h6>
-                    <p>{{ object.creator }}</p>
+                    <h6 class="col-md-3"><a href="{% url 'model:object-detail' object.pk %}">{{ object }}</a></h6>
+                    <p>{{ object.attribute }}</p>
+                    <p>{{ object.attribute }}</p>
 
                     {% if object.is_modified %}
                         <p class="text-secondary col-md-3">Modified</p>

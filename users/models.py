@@ -193,10 +193,10 @@ class User(DefaultFields, AbstractUser):
         if not user in self.friends.all():
             raise ValueError(f"Coudn't remove user {user}: not friends")
         self.friends.remove(user)
-    
+
     def __str__(self):
         return self.username or self.email
-    
+
 """Relationship classes"""
 class Friendship(DefaultFields):
     user_1 = models.ForeignKey(User, related_name='friendship_user_1', on_delete=models.CASCADE)
