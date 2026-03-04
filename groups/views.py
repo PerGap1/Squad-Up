@@ -14,22 +14,18 @@ class SquadUrl(SquadView):
     success_url = reverse_lazy('groups:squad-list')
 
 class SquadForm(SquadUrl): 
-    fields = ['name', 'privacy', 'image', 'games', 'creator', 'host', 'members']
-
-
-# Views genéricas
-class SquadListView(SquadView, ListView): pass
-
-class SquadDetailView(SquadView, DetailView): pass
-
-class SquadCreateView(SquadForm, CreateView):
+    fields = ['name', 'privacy', 'image', 'games', 'host', 'members']
 
     def form_valid(self, form):
         self.object = form.save(commit=True)
         return HttpResponseRedirect(reverse('groups:squad-list'))
 
-class SquadUpdateView(SquadForm, UpdateView): pass
 
+# Views genéricas
+class SquadListView(SquadView, ListView): pass
+class SquadDetailView(SquadView, DetailView): pass
+class SquadCreateView(SquadForm, CreateView): pass
+class SquadUpdateView(SquadForm, UpdateView): pass
 class SquadDeleteView(SquadUrl, DeleteView): pass
 
 
@@ -41,20 +37,19 @@ class EventUrl(EventView):
     success_url = reverse_lazy('groups:event-list')
 
 class EventForm(EventUrl): 
-    fields = ['name', 'privacy', 'image', 'games', 'creator', 'host', 'members']
+    fields = ['name', 'privacy', 'image', 'games', 'host', 'members', 'squad']
+
+    def form_valid(self, form:EventForm):
+        # Todos os jogadores do squad serem adicionados no evento...?
+        # form.fields['creator'] = form.fields['host']
+        # Ajustar os forms, para que alguns campos não sejam obrigatórios
+        self.object = form.save(commit=True)
+        return HttpResponseRedirect(reverse('groups:event-list'))
 
 
 # Views genéricas
 class EventListView(EventView, ListView): pass
-
 class EventDetailView(EventView, DetailView): pass
-
-class EventCreateView(EventForm, CreateView):
-
-    def form_valid(self, form):
-        self.object = form.save(commit=True)
-        return HttpResponseRedirect(reverse('groups:event-list'))
-
+class EventCreateView(EventForm, CreateView): pass
 class EventUpdateView(EventForm, UpdateView): pass
-
 class EventDeleteView(EventUrl, DeleteView): pass

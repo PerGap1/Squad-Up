@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{{ object }}</h2>
+
+    <p>{{ object.privacy }}</p>
+    <p>{{ object.tag }}</p>
+    <p>{{ object.host }}</p>
+    <p>{{ object.creator }}</p>
+
+    {% if object.is_modified %}
+        <p class="text-secondary">Modified</p>
+    {% endif %}
+
+    <a class="btn btn-outline-secondary" href="{% url 'groups:event-update' object.pk %}">
+        Update
+    </a>
+    <a class="btn btn-outline-danger" href="{% url 'groups:event-delete' object.pk %}">
+        Delete
+    </a>
+{% endblock %}

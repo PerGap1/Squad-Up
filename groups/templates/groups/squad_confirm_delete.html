@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div>
+        <form method="post">
+            {% csrf_token %}
+            <h2>Delete Squad '{{ object }}'?</h2>
+            <div>
+                <a class="btn btn-outline-secondary" href="{% url 'groups:squad-detail' object.pk %}">Cancel</a>
+                <button class="btn btn-outline-danger align-item-end" type="submit">Delete</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
